@@ -14,7 +14,7 @@ If you have any questions, you can ask them on my [Discord](https://discord.com/
 ## Configuration:
 You can find config file in `./config/styled-chat.json`.
 [Formatting uses PlaceholderAPI's Text Parser for which docs you can find here](https://github.com/Patbox/FabricPlaceholderAPI/blob/1.17/TEXT_FORMATTING.md).
-It supports usage of placeholders from [Placeholder API](https://github.com/Patbox/FabricPlaceholderAPI/wiki).
+It supports usage of placeholders from [Placeholder API](https://github.com/Patbox/FabricPlaceholderAPI/wiki) by installing the [Box Of Placeholders mod](https://modrinth.com/mod/BoxOfPlaceholders) on your server.
 Additionally, every message type has few own local variables.
 
 ```json5
