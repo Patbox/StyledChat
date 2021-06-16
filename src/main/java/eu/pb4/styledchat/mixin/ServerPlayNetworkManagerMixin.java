@@ -3,6 +3,7 @@ package eu.pb4.styledchat.mixin;
 
 import eu.pb4.placeholders.TextParser;
 import eu.pb4.placeholders.util.GeneralUtils;
+import eu.pb4.styledchat.config.Config;
 import eu.pb4.styledchat.config.ConfigManager;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.network.MessageType;
@@ -14,7 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -43,18 +44,35 @@ public class ServerPlayNetworkManagerMixin {
     private void replaceChatMessage(PlayerManager playerManager, Text serverMessage, Function<ServerPlayerEntity, Text> playerMessageFactory, MessageType playerMessageType, UUID sender, TextStream.Message message) {
         HashMap<String, TextParser.TextFormatterHandler> handlers = new HashMap<>();
         ServerCommandSource source = this.player.getCommandSource();
+        Config config = ConfigManager.getConfig();
+
+
         for (Map.Entry<String, TextParser.TextFormatterHandler> entry : TextParser.getRegisteredTags().entrySet()) {
-            if (Permissions.check(source, "styledchat.format." + entry.getKey(), 2)) {
+            if (Permissions.check(source, "styledchat.format." + entry.getKey(), 2)
+                    || Permissions.check(source, "styledchat.format." + entry.getKey(), config.defaultFormattingCodes.getBoolean(entry.getKey()))) {
                 handlers.put(entry.getKey(), entry.getValue());
             }
         }
 
-        if (Permissions.check(source, "styledchat.format.item", 1)) {
+        if (Permissions.check(source, "styledchat.format.item", 2)
+                || Permissions.check(source, "styledchat.format.item", config.defaultFormattingCodes.getBoolean("item"))) {
             handlers.put("item", (tag, data, input, buildInHandlers, endAt) -> new GeneralUtils.TextLengthPair((MutableText) player.getStackInHand(Hand.MAIN_HAND).toHoverableText(), 0));
         }
 
-        Text rawText = ConfigManager.getConfig().getChat(this.player, handlers.size() > 0 ? TextParser.parse(message.getRaw(), handlers) : new LiteralText(message.getRaw()));
-        Text filteredText = ConfigManager.getConfig().getChat(this.player, handlers.size() > 0 ? TextParser.parse(message.getFiltered(), handlers) : new LiteralText(message.getFiltered()));
+        String rawMessage = message.getRaw();
+        String filteredMessage = message.getRaw();
+
+        if (config.configData.legacyChatFormatting) {
+            for (Formatting formatting : Formatting.values()) {
+                if (handlers.get(formatting.getName()) != null) {
+                    rawMessage = rawMessage.replaceAll(String.copyValueOf(new char[] {'&', formatting.getCode()}), "<" + formatting.getName() + ">");
+                    filteredMessage = filteredMessage.replaceAll(String.copyValueOf(new char[] {'&', formatting.getCode()}), "<" + formatting.getName() + ">");
+                }
+            }
+        }
+
+        Text rawText = config.getChat(this.player, handlers.size() > 0 ? TextParser.parse(rawMessage, handlers) : new LiteralText(message.getRaw()));
+        Text filteredText = config.getChat(this.player, handlers.size() > 0 ? TextParser.parse(filteredMessage, handlers) : new LiteralText(message.getFiltered()));
 
         playerManager.broadcast(rawText, (player) -> this.player.shouldFilterMessagesSentTo(player) ?  filteredText : rawText, playerMessageType, sender);
     }

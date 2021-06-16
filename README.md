@@ -9,7 +9,7 @@ If you have any questions, you can ask them on my [Discord](https://discord.com/
 
 ## Commands (and permissions):
 - `/styledchat` - Main command (`styledchat.main`, available by default)
-- `/styledchatreload` - Reloads configuration and styles (requires `styledchat.reload`)
+- `/styledchat reload` - Reloads configuration and styles (requires `styledchat.reload`)
 
 ## Configuration:
 You can find config file in `./config/styled-chat.json`.
@@ -36,6 +36,11 @@ Additionally, every message type has few own local variables.
       // The same values as in "defaultStyle", however it will handle missing ones just fine
       // By applying next valid 
     }
+  },
+  "legacyChatFormatting": false,    // Enables support for legacy (&x) codes in chat (only when typed by player)
+  "defaultEnabledFormatting": {
+    "type": false
+    // Here you can change which formatting is available by default for player
   }
 }
 ```

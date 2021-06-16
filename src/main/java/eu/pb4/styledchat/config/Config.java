@@ -1,10 +1,9 @@
 package eu.pb4.styledchat.config;
 
 
-import com.google.common.collect.ImmutableMap;
-import eu.pb4.placeholders.TextParser;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
+import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,17 +11,17 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class Config {
-    //private final ConfigData configData;
+    public final ConfigData configData;
     private final ChatStyle defaultStyle;
     private final List<PermissionStyle> permissionStyle;
+    public final Object2BooleanArrayMap<String> defaultFormattingCodes;
 
     public Config(ConfigData data) {
-        //this.configData = data;
+        this.configData = data;
         this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.getDefault()));
 
         this.permissionStyle = new ArrayList<>();
@@ -35,6 +34,7 @@ public final class Config {
             }
         }
 
+        this.defaultFormattingCodes = new Object2BooleanArrayMap<>(this.configData.defaultEnabledFormatting);
     }
 
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {

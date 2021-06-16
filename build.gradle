@@ -33,7 +33,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 
-	modImplementation include("eu.pb4:placeholder-api:1.0.0-rc1-1.17")
+	modImplementation include("eu.pb4:placeholder-api:1.0.0-rc2-1.17")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 
 	modRuntime "supercoder79:databreaker:0.2.7"

@@ -9,6 +9,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.*;
 
 public class ConfigManager {
+    public static final int VERSION = 1;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private static Config CONFIG;
@@ -32,7 +33,7 @@ public class ConfigManager {
 
 
             if (configFile.exists()) {
-                config = GSON.fromJson(new InputStreamReader(new FileInputStream(configFile), "UTF-8"), ConfigData.class);
+                config = ConfigData.transform(GSON.fromJson(new InputStreamReader(new FileInputStream(configFile), "UTF-8"), ConfigData.class));
             } else {
                 config = new ConfigData();
             }
