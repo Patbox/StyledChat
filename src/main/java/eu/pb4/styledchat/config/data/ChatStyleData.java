@@ -2,6 +2,8 @@ package eu.pb4.styledchat.config.data;
 
 
 public class ChatStyleData {
+    public static ChatStyleData DEFAULT = getDefault();
+
     public String displayName;
     public String chat;
     public String join;
@@ -13,7 +15,7 @@ public class ChatStyleData {
     public String advancementGoal;
 
 
-    public static ChatStyleData getDefault() {
+    private static ChatStyleData getDefault() {
         ChatStyleData data = new ChatStyleData();
         data.displayName = "${vanillaDisplayName}";
         data.chat = "<${player}> ${message}";

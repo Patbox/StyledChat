@@ -4,12 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.config.data.ConfigData;
+import eu.pb4.styledchat.config.data.VersionConfigData;
+import eu.pb4.styledchat.config.data.old.ConfigDataV1;
 import net.fabricmc.loader.api.FabricLoader;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 
 public class ConfigManager {
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private static Config CONFIG;
@@ -33,7 +36,13 @@ public class ConfigManager {
 
 
             if (configFile.exists()) {
-                config = ConfigData.transform(GSON.fromJson(new InputStreamReader(new FileInputStream(configFile), "UTF-8"), ConfigData.class));
+                String json = IOUtils.toString(new InputStreamReader(new FileInputStream(configFile), "UTF-8"));
+                VersionConfigData versionConfigData = GSON.fromJson(json, VersionConfigData.class);
+
+                config = ConfigData.transform(switch (versionConfigData.CONFIG_VERSION_DONT_TOUCH_THIS) {
+                    case 1 -> GSON.fromJson(json, ConfigDataV1.class).updateToV2();
+                    default -> GSON.fromJson(json, ConfigData.class);
+                });
             } else {
                 config = new ConfigData();
             }

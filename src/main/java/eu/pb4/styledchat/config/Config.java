@@ -22,15 +22,15 @@ public final class Config {
 
     public Config(ConfigData data) {
         this.configData = data;
-        this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.getDefault()));
+        this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.DEFAULT));
 
         this.permissionStyle = new ArrayList<>();
 
-        for (Map.Entry<String, ChatStyleData> entry : data.permissionStyles.entrySet()) {
+        for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
             try {
-                this.permissionStyle.add(new PermissionStyle(entry.getKey(), MathHelper.clamp(Integer.parseInt(entry.getKey()), 1, 4), new ChatStyle(entry.getValue())));
+                this.permissionStyle.add(new PermissionStyle(entry.permission, MathHelper.clamp(Integer.parseInt(entry.permission), 1, 4), new ChatStyle(entry.style)));
             } catch (Exception e) {
-                this.permissionStyle.add(new PermissionStyle(entry.getKey(), 4, new ChatStyle(entry.getValue())));
+                this.permissionStyle.add(new PermissionStyle(entry.permission, 4, new ChatStyle(entry.style)));
             }
         }
 

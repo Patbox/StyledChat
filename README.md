@@ -31,12 +31,16 @@ Additionally, every message type has few own local variables.
     "advancementChallenge": "...", // Finishing advancement challenge (local variables: ${player}, ${advancement})
     "advancementGoal": "...",      // Finishing advancement goal (local variables: ${player}, ${advancement})
   },
-  "permissionStyles": {            // Permission based overrides, applied from highest to lowest
-    "permission.test": {           // Permission string required to use
-      // The same values as in "defaultStyle", however it will handle missing ones just fine
-      // By applying next valid 
-    }
-  },
+  "permissionStyles": [            // Permission based overrides, applied from highest to lowest
+    {
+      "permission": "...",  // Permission string required to use
+      "style": {
+        // The same values as in "defaultStyle", however it will handle missing ones just fine
+        // By applying next valid 
+      }
+    } // You can have as many permission overrides as possible
+      // Just remember to have most important ones above least (so for example Admin, Moderator, Helper)
+  ],
   "legacyChatFormatting": false,    // Enables support for legacy (&x) codes in chat (only when typed by player)
   "defaultEnabledFormatting": {
     "type": false
@@ -53,7 +57,7 @@ It supports all default ones with addition of `<item>` tag.
 ## Example config
 ```json 
 {
-  "CONFIG_VERSION_DONT_TOUCH_THIS": 1,
+  "CONFIG_VERSION_DONT_TOUCH_THIS": 2,
   "_comment": "Before changing anything, see https://github.com/Patbox/StyledChat#configuration",
   "defaultStyle": {
     "displayName": "${vanillaDisplayName}",
@@ -66,13 +70,58 @@ It supports all default ones with addition of `<item>` tag.
     "advancementChallenge": "<gray>✔</gray> <gold><lang:chat.type.advancement.challenge:'${player}':'${advancement}'>",
     "advancementGoal": "<gray>✔</gray> <gold><lang:chat.type.advancement.goal:'${player}':'${advancement}'>"
   },
-  "permissionStyles": {
-    "group.admin": {
-      "chat": "${player} <dark_gray>»</dark_gray> <gold>${message}"
+  "permissionStyles": [
+    {
+      "permission": "group.test",
+      "style": {
+        "displayName": "<dark_gray>[<dark_red>Admin</dark_red> | <yellow>%player:playtime%</yellow>]</dark_gray> <red>${vanillaDisplayName}</red>"
+      }
     },
-    "group.test": {
-      "displayName": "<dark_gray>[<dark_red>Admin</dark_red> | <yellow>%player:playtime%</yellow>]</dark_gray> <red>${vanillaDisplayName}</red>"
+    {
+      "permission": "group.admin",
+      "style": {
+        "displayName": "<dark_gray>[<dark_red>Admin</dark_red>]</dark_gray> <red>${vanillaDisplayName}</red>",
+        "chat": "${player} <dark_gray>»</dark_gray> <gold>${message}"
+      }
     }
+  ],
+  "legacyChatFormatting": true,
+  "defaultEnabledFormatting": {
+    "dark_red": true,
+    "color": false,
+    "underline": true,
+    "yellow": false,
+    "insert": false,
+    "italic": false,
+    "dark_blue": false,
+    "dark_purple": true,
+    "gold": true,
+    "red": false,
+    "aqua": false,
+    "hover": false,
+    "gray": false,
+    "light_purple": false,
+    "white": false,
+    "dark_gray": false,
+    "strikethrough": false,
+    "lang": false,
+    "obfuscated": false,
+    "key": false,
+    "item": true,
+    "green": false,
+    "c": true,
+    "dark_green": false,
+    "gradient": false,
+    "black": false,
+    "bold": false,
+    "gr": false,
+    "click": false,
+    "rb": false,
+    "rainbow": false,
+    "blue": false,
+    "dark_aqua": false,
+    "reset": true,
+    "font": false
   }
 }
 ```
