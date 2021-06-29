@@ -16,19 +16,12 @@ public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private static Config CONFIG;
-    private static boolean ENABLED = false;
 
     public static Config getConfig() {
         return CONFIG;
     }
 
-    public static boolean isEnabled() {
-        return ENABLED;
-    }
-
     public static boolean loadConfig() {
-        ENABLED = false;
-
         CONFIG = null;
         try {
             ConfigData config;
@@ -53,14 +46,13 @@ public class ConfigManager {
 
 
             CONFIG = new Config(config);
-            ENABLED = true;
+            return true;
         }
         catch(IOException exception) {
-            ENABLED = false;
             StyledChatMod.LOGGER.error("Something went wrong while reading config!");
             exception.printStackTrace();
+            CONFIG = new Config(new ConfigData());
+            return false;
         }
-
-        return ENABLED;
     }
 }

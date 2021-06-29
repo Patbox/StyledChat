@@ -1,6 +1,7 @@
 package eu.pb4.styledchat.config;
 
 
+import eu.pb4.placeholders.TextParser;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
@@ -12,19 +13,20 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public final class Config {
     public final ConfigData configData;
     private final ChatStyle defaultStyle;
     private final List<PermissionStyle> permissionStyle;
     public final Object2BooleanArrayMap<String> defaultFormattingCodes;
+    public final Text linkStyle;
 
     public Config(ConfigData data) {
         this.configData = data;
         this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.DEFAULT));
 
         this.permissionStyle = new ArrayList<>();
+        this.linkStyle = TextParser.parse(data.linkStyle);
 
         for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
             try {
@@ -74,6 +76,23 @@ public final class Config {
             }
         }
         return this.defaultStyle.getJoin(player);
+    }
+
+    public Text getJoinFirstTime(ServerPlayerEntity player) {
+        ServerCommandSource source = player.getCommandSource();
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(source, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getJoinFirstTime(player);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        Text text = this.defaultStyle.getJoinFirstTime(player);
+        if (text != null) {
+            return text;
+        }
+        return this.getJoin(player);
     }
 
     public Text getJoinRenamed(ServerPlayerEntity player, String oldName) {

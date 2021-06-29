@@ -8,6 +8,7 @@ public class ChatStyleData {
     public String chat;
     public String join;
     public String joinRenamed;
+    public String joinFirstTime;
     public String left;
     public String death;
     public String advancementTask;
@@ -21,6 +22,7 @@ public class ChatStyleData {
         data.chat = "<${player}> ${message}";
         data.join = "<yellow><lang:multiplayer.player.joined:'${player}'></yellow>";
         data.joinRenamed = "<yellow><lang:multiplayer.player.joined.renamed:'${player}':'${old_name}'></yellow>";
+        data.joinFirstTime = "<yellow><lang:multiplayer.player.joined:'${player}'></yellow>";
         data.left = "<yellow><lang:multiplayer.player.left:'${player}'></yellow>";
         data.death = "${default_message}";
         data.advancementTask = "<lang:chat.type.advancement.task:'${player}':'${advancement}'>";

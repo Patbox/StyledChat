@@ -13,6 +13,8 @@ public class StyledChatMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger("Styled Chat");
 	public static String VERSION = FabricLoader.getInstance().getModContainer("styledchat").get().getMetadata().getVersion().getFriendlyString();
 
+	public static final String URL_REGEX = "(https?:\\/\\/[-a-zA-Z0-9@:%._\\+~#=]+\\.[^ ]+)";
+
 	@Override
 	public void onInitialize() {
 		Commands.register();

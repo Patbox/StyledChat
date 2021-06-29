@@ -13,6 +13,7 @@ public class ChatStyle {
     public final Text displayName;
     public final Text chat;
     public final Text join;
+    public final Text joinFirstTime;
     public final Text joinRenamed;
     public final Text left;
     public final Text death;
@@ -24,6 +25,7 @@ public class ChatStyle {
         this.displayName = data.displayName != null ? TextParser.parse(data.displayName.replace("%player:displayname%", "")) : defaultStyle.displayName;
         this.chat = data.chat != null ? TextParser.parse(data.chat) : defaultStyle.chat;
         this.join = data.join != null ? TextParser.parse(data.join) : defaultStyle.join;
+        this.joinFirstTime = data.joinFirstTime != null ? TextParser.parse(data.joinFirstTime) : this.join;
         this.joinRenamed = data.joinRenamed != null ? TextParser.parse(data.joinRenamed) : defaultStyle.joinRenamed;
         this.left = data.left != null ? TextParser.parse(data.left) : defaultStyle.left;
         this.death = data.death != null ? TextParser.parse(data.death) : defaultStyle.death;
@@ -38,6 +40,7 @@ public class ChatStyle {
         this.chat = data.chat != null ? TextParser.parse(data.chat) : null;
         this.join = data.join != null ? TextParser.parse(data.join) : null;
         this.joinRenamed = data.joinRenamed != null ? TextParser.parse(data.joinRenamed) : null;
+        this.joinFirstTime = data.joinFirstTime != null ? TextParser.parse(data.joinFirstTime) : null;
         this.left = data.left != null ? TextParser.parse(data.left) : null;
         this.death = data.death != null ? TextParser.parse(data.death) : null;
         this.advancementTask = data.advancementTask != null ? TextParser.parse(data.advancementTask) : null;
@@ -79,6 +82,18 @@ public class ChatStyle {
 
         return PlaceholderAPI.parsePredefinedText(
                 PlaceholderAPI.parseText(this.join, player),
+                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+                Map.of("player", player.getDisplayName())
+        );
+    }
+
+    public Text getJoinFirstTime(ServerPlayerEntity player) {
+        if (this.joinFirstTime == null) {
+            return null;
+        }
+
+        return PlaceholderAPI.parsePredefinedText(
+                PlaceholderAPI.parseText(this.joinFirstTime, player),
                 PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName())
         );

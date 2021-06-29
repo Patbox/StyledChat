@@ -4,6 +4,7 @@ import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,8 +32,11 @@ public class PlayerManagerMixin {
 
     @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
     private Text updatePlayerNameAfterMessage(Text text) {
-        Object[] args = ((TranslatableText) text).getArgs();
+        if (this.temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
+            return ConfigManager.getConfig().getJoinFirstTime(this.temporaryPlayer);
+        }
 
+        Object[] args = ((TranslatableText) text).getArgs();
         if (args.length == 1) {
             return ConfigManager.getConfig().getJoin(this.temporaryPlayer);
         } else {

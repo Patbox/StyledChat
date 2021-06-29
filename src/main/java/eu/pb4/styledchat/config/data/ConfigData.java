@@ -14,15 +14,21 @@ public class ConfigData {
     public ChatStyleData defaultStyle = ChatStyleData.DEFAULT;
     public List<PermissionPriorityStyle> permissionStyles = new ArrayList<>();
     public boolean legacyChatFormatting = false;
+    public boolean parseLinksInChat = true;
+    public String linkStyle = "<underline><blue>${link}";
     public HashMap<String, Boolean> defaultEnabledFormatting = getDefaultFormatting();
 
 
     private static HashMap<String, Boolean> getDefaultFormatting() {
         HashMap<String, Boolean> map = new HashMap<>();
         for (String string : TextParser.getRegisteredTags().keySet()) {
+            if (string.equals("click")) {
+                continue;
+            }
             map.put(string, false);
         }
         map.put("item", true);
+        map.put("pos", true);
         return map;
     }
 
