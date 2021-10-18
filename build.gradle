@@ -30,10 +30,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation include(fabricApi.module("fabric-api-base", project.fabric_version))
+	modImplementation include(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
+	modImplementation include(fabricApi.module("fabric-command-api-v1", project.fabric_version))
 
-
-	modImplementation include("eu.pb4:placeholder-api:1.0.0-rc2-1.17")
+	modImplementation include("eu.pb4:placeholder-api:1.1.1+1.17.1")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 
 	modRuntime "supercoder79:databreaker:0.2.7"

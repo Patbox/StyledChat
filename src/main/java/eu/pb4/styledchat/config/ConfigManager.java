@@ -13,7 +13,7 @@ import java.io.*;
 
 public class ConfigManager {
     public static final int VERSION = 2;
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient().create();
 
     private static Config CONFIG;
 
@@ -36,6 +36,8 @@ public class ConfigManager {
                     case 1 -> GSON.fromJson(json, ConfigDataV1.class).updateToV2();
                     default -> GSON.fromJson(json, ConfigData.class);
                 });
+
+                config.defaultStyle.fillMissing();
             } else {
                 config = new ConfigData();
             }

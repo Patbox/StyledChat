@@ -15,7 +15,7 @@ public class PlayerEntityMixin {
     @Unique private boolean ignoreNextCalls = false;
 
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
-    private void replaceDisplayName(CallbackInfoReturnable<Text> cir) {
+    private void styledChat_replaceDisplayName(CallbackInfoReturnable<Text> cir) {
         if (!this.ignoreNextCalls && ((Object) this) instanceof ServerPlayerEntity player) {
             this.ignoreNextCalls = true;
             cir.setReturnValue(ConfigManager.getConfig().getDisplayName(player, cir.getReturnValue()));

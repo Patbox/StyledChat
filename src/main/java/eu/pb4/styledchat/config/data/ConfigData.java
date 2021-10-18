@@ -1,34 +1,69 @@
 package eu.pb4.styledchat.config.data;
 
+import com.mojang.serialization.RecordBuilder;
 import eu.pb4.placeholders.TextParser;
+import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigData {
     public int CONFIG_VERSION_DONT_TOUCH_THIS = ConfigManager.VERSION;
     public String _comment = "Before changing anything, see https://github.com/Patbox/StyledChat#configuration";
     public ChatStyleData defaultStyle = ChatStyleData.DEFAULT;
     public List<PermissionPriorityStyle> permissionStyles = new ArrayList<>();
+    public String petDeathMessage = "${default_message}";
+
+    public Map<String, String> emoticons = getDefaultEmoticons();
+
+    public List<PermissionEmotes> permissionEmoticons = new ArrayList<>();
+
     public boolean legacyChatFormatting = false;
     public boolean parseLinksInChat = true;
-    public String linkStyle = "<underline><blue>${link}";
+    public boolean enableMarkdown = true;
+    public boolean formattingInPrivateMessages = true;
+    public boolean formattingInTeamMessages = true;
+    public String linkStyle = "<underline><c:#0000EE>${link}";
+    public String spoilerStyle = "<gray>${spoiler}";
+    public String spoilerSymbol = "▌";
     public HashMap<String, Boolean> defaultEnabledFormatting = getDefaultFormatting();
+
 
 
     private static HashMap<String, Boolean> getDefaultFormatting() {
         HashMap<String, Boolean> map = new HashMap<>();
-        for (String string : TextParser.getRegisteredTags().keySet()) {
-            if (string.equals("click")) {
-                continue;
-            }
+        for (String string : TextParser.getRegisteredSafeTags().keySet()) {
             map.put(string, false);
         }
-        map.put("item", true);
-        map.put("pos", true);
+        map.put(StyledChatUtils.ITEM_TAG, true);
+        map.put(StyledChatUtils.POS_TAG, true);
+        map.put(StyledChatUtils.SPOILER_TAG, true);
+        map.put("bold", true);
+        map.put("b", true);
+        map.put("italic", true);
+        map.put("i", true);
+        map.put("strikethrough", true);
+        map.put("st", true);
+        map.put("underline", true);
+        return map;
+    }
+
+    private static Map<String, String> getDefaultEmoticons() {
+        HashMap<String, String> map = new HashMap<>();
+
+        map.put("shrug", "¯\\_(ツ)_/¯");
+        map.put("table", "(╯°□°）╯︵ ┻━┻");
+        map.put("heart", "❤");
+        map.put("sword", "\uD83D\uDDE1");
+        map.put("fire", "\uD83D\uDD25");
+        map.put("bow", "\uD83C\uDFF9");
+        map.put("trident", "\uD83D\uDD31");
+        map.put("rod", "\uD83C\uDFA3");
+        map.put("potion", "\uD83E\uDDEA");
+        map.put("shears", "✂");
+        map.put("bucket", "\uD83E\uDEA3");
+        map.put("bell", "\uD83D\uDD14");
+
         return map;
     }
 
@@ -41,6 +76,7 @@ public class ConfigData {
 
     public static class PermissionPriorityStyle {
         public String permission = "";
+        public int opLevel = 3;
         public ChatStyleData style = ChatStyleData.DEFAULT;
 
         public static PermissionPriorityStyle of(String permission, ChatStyleData style) {
@@ -49,5 +85,11 @@ public class ConfigData {
             priorityStyle.style = style;
             return priorityStyle;
         }
+    }
+
+    public static class PermissionEmotes {
+        public String permission = "";
+        public int opLevel = 3;
+        public Map<String, String> emotes = Collections.EMPTY_MAP;
     }
 }

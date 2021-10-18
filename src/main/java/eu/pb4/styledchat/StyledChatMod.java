@@ -13,11 +13,24 @@ public class StyledChatMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger("Styled Chat");
 	public static String VERSION = FabricLoader.getInstance().getModContainer("styledchat").get().getMetadata().getVersion().getFriendlyString();
 
-	public static final String URL_REGEX = "(https?:\\/\\/[-a-zA-Z0-9@:%._\\+~#=]+\\.[^ ]+)";
-
 	@Override
 	public void onInitialize() {
+		this.crabboardDetection();
 		Commands.register();
-		ServerLifecycleEvents.SERVER_STARTING.register((s) -> ConfigManager.loadConfig());
+		ServerLifecycleEvents.SERVER_STARTING.register((s) -> {
+			this.crabboardDetection();
+			ConfigManager.loadConfig();
+		});
+	}
+
+	private void crabboardDetection() {
+		if (FabricLoader.getInstance().isModLoaded("cardboard")) {
+			LOGGER.error("");
+			LOGGER.error("Cardboard detected! This mod doesn't work with it!");
+			LOGGER.error("You won't get any support as long as it's present!");
+			LOGGER.error("");
+			LOGGER.error("Read more: https://gist.github.com/Patbox/e44844294c358b614d347d369b0fc3bf");
+			LOGGER.error("");
+		}
 	}
 }

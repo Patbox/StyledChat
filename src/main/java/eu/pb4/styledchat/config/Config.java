@@ -1,18 +1,23 @@
 package eu.pb4.styledchat.config;
 
 
+import eu.pb4.placeholders.PlaceholderAPI;
 import eu.pb4.placeholders.TextParser;
+import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Config {
     public final ConfigData configData;
@@ -20,6 +25,11 @@ public final class Config {
     private final List<PermissionStyle> permissionStyle;
     public final Object2BooleanArrayMap<String> defaultFormattingCodes;
     public final Text linkStyle;
+    public final Text spoilerStyle;
+    private final Text petDeathMessage;
+
+    private final Map<String, Text> emotes;
+    private final List<PermissionEmotes> permissionEmotes;
 
     public Config(ConfigData data) {
         this.configData = data;
@@ -27,14 +37,29 @@ public final class Config {
 
         this.permissionStyle = new ArrayList<>();
         this.linkStyle = TextParser.parse(data.linkStyle);
+        this.spoilerStyle = TextParser.parse(data.spoilerStyle);
 
         for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
-            try {
-                this.permissionStyle.add(new PermissionStyle(entry.permission, MathHelper.clamp(Integer.parseInt(entry.permission), 1, 4), new ChatStyle(entry.style)));
-            } catch (Exception e) {
-                this.permissionStyle.add(new PermissionStyle(entry.permission, 4, new ChatStyle(entry.style)));
+            this.permissionStyle.add(new PermissionStyle(entry.permission, entry.opLevel, new ChatStyle(entry.style)));
+        }
+
+        this.petDeathMessage = StyledChatUtils.parseText(configData.petDeathMessage);
+
+        this.emotes = new HashMap<>();
+
+        for (var entry : data.emoticons.entrySet()) {
+            this.emotes.put(entry.getKey(), TextParser.parse(entry.getValue()));
+        }
+
+        this.permissionEmotes = new ArrayList<>();
+        for (var entry : data.permissionEmoticons) {
+            var emotes = PermissionEmotes.of(entry.permission, entry.opLevel);
+
+            for (var emote : entry.emotes.entrySet()) {
+                emotes.emotes().put(emote.getKey(), TextParser.parse(emote.getValue()));
             }
         }
+
 
         this.defaultFormattingCodes = new Object2BooleanArrayMap<>(this.configData.defaultEnabledFormatting);
     }
@@ -173,6 +198,141 @@ public final class Config {
         return this.defaultStyle.getAdvancementChallenge(player, advancement);
     }
 
+    public Text getSayCommand(ServerCommandSource source, Text message) {
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(source, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getSayCommand(source, message);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getSayCommand(source, message);
+    }
+
+    public Text getMeCommand(ServerCommandSource source, Text message) {
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(source, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getMeCommand(source, message);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getMeCommand(source, message);
+    }
+
+    public Text getPrivateMessageSent(Text sender, Text receiver, Text message, ServerCommandSource context) {
+        Object placeholderContext;
+
+        try {
+            placeholderContext = context.getPlayer();
+        } catch (Exception e) {
+            placeholderContext = context.getServer();
+        }
+
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(context, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getPrivateMessageSent(sender, receiver, message, placeholderContext);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getPrivateMessageSent(sender, receiver, message, placeholderContext);
+    }
+
+    public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, ServerCommandSource context) {
+        Object placeholderContext;
+
+        try {
+            placeholderContext = context.getPlayer();
+        } catch (Exception e) {
+            placeholderContext = context.getServer();
+        }
+
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(context, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
+    }
+
+    public Text getTeamChatSent(Text team, Text displayName, Text message, ServerCommandSource context) {
+        Object placeholderContext;
+
+        try {
+            placeholderContext = context.getPlayer();
+        } catch (Exception e) {
+            placeholderContext = context.getServer();
+        }
+
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(context, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getTeamChatSent(team, displayName, message, placeholderContext);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getTeamChatSent(team, displayName, message, placeholderContext);
+    }
+
+    public Text getTeamChatReceived(Text team, Text displayName, Text message, ServerCommandSource context) {
+        Object placeholderContext;
+
+        try {
+            placeholderContext = context.getPlayer();
+        } catch (Exception e) {
+            placeholderContext = context.getServer();
+        }
+
+        for (PermissionStyle entry : this.permissionStyle) {
+            if (Permissions.check(context, entry.permission, entry.opLevel)) {
+                Text text = entry.style.getTeamChatReceived(team, displayName, message, placeholderContext);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getTeamChatReceived(team, displayName, message, placeholderContext);
+    }
+
+    public Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
+        if (this.petDeathMessage == null) {
+            return null;
+        }
+
+        return PlaceholderAPI.parsePredefinedText(
+                PlaceholderAPI.parseText(this.petDeathMessage, entity.getServer()),
+                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+                Map.of("pet", entity.getDisplayName(),
+                        "default_message", vanillaMessage)
+        );
+    }
+
+    public Map<String, Text> getEmotes(ServerCommandSource source) {
+        var base = new HashMap<>(this.emotes);
+
+        for (var entry : this.permissionEmotes) {
+            if (Permissions.check(source, entry.permission, entry.opLevel)) {
+                base.putAll(entry.emotes());
+            }
+        }
+
+        return base;
+    }
+
     private static record PermissionStyle(String permission, int opLevel, ChatStyle style) {
+    }
+
+    private static record PermissionEmotes(String permission, int opLevel, Map<String, Text> emotes) {
+        public static PermissionEmotes of(String permission, int opLevel) {
+            return new PermissionEmotes(permission, opLevel, new HashMap<>());
+        }
     }
 }

@@ -4,11 +4,17 @@
   "package": "eu.pb4.styledchat.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "MeCommandMixin",
+    "MessageCommandMixin",
+    "MinecraftServerMixin",
     "PlayerAdvancementTrackerMixin",
     "PlayerEntityMixin",
     "PlayerManagerMixin",
+    "SayCommandMixin",
     "ServerPlayerEntityMixin",
-    "ServerPlayNetworkManagerMixin"
+    "ServerPlayNetworkManagerMixin",
+    "TameableEntityMixin",
+    "TeamMsgCommandMixin"
   ],
   "client": [
   ],
