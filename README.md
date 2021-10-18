@@ -1,3 +1,4 @@
+![Logo](https://i.imgur.com/DC12A5i.png)
 # Styled Chat
 It's a simple mod that allows server owners to change how their chat looks!
 
@@ -30,21 +31,28 @@ Additionally, every message type has few own local variables.
 
 ```json5
 {
-  "CONFIG_VERSION_DONT_TOUCH_THIS": 1,
-  "defaultStyle": {                // Default style settings
-    "displayName": "...",          // Display name (local variables: ${vanillaDisplayName}, ${name})
-    "chat": "...",                 // Chat message style (local variables: ${player}, ${message})
-    "join": "...",                 // Join message (local variables: ${player})
-    "joinRenamed": "...",          // Join message after name change (local variables: ${player}, ${old_name})
-    "left": "...",                 // Player leaving server (local variables: ${player})
-    "death": "...",                // Player death message (local variables: ${player}, ${default_message})
-    "advancementTask": "...",      // Finishing advancement task (local variables: ${player}, ${advancement})
-    "advancementChallenge": "...", // Finishing advancement challenge (local variables: ${player}, ${advancement})
-    "advancementGoal": "...",      // Finishing advancement goal (local variables: ${player}, ${advancement})
+  "CONFIG_VERSION_DONT_TOUCH_THIS": 2,
+  "defaultStyle": {                 // Default style settings
+    "displayName": "...",           // Display name (local variables: ${vanillaDisplayName}, ${name})
+    "chat": "...",                  // Chat message style (local variables: ${player}, ${message})
+    "join": "...",                  // Join message (local variables: ${player})
+    "joinRenamed": "...",           // Join message after name change (local variables: ${player}, ${old_name})
+    "left": "...",                  // Player leaving server (local variables: ${player})
+    "death": "...",                 // Player death message (local variables: ${player}, ${default_message})
+    "advancementTask": "...",       // Finishing advancement task (local variables: ${player}, ${advancement})
+    "advancementChallenge": "...",  // Finishing advancement challenge (local variables: ${player}, ${advancement})
+    "advancementGoal": "...",       // Finishing advancement goal (local variables: ${player}, ${advancement}) 
+    "teamChatSent": "...",          // Team message, visible to player sending it (local variables: ${team}, ${displayName}, ${message})
+    "teamChatReceived": "...",      // Team message, visible to other team members (local variables: ${team}, ${displayName}, ${message})
+    "privateMessageSent": "...",    // Private message, visible to player sending (local variables: ${receiver}, ${sender}, ${message})
+    "privateMessageReceived": "...",// Private message, visible to others (local variables: ${receiver}, ${sender}, ${message})
+    "sayCommand": "...",            // Output of /say command (local variables: ${player}, ${message})
+    "meCommand": "..."              // Output of /me command (local variables: ${player}, ${message})
   },
-  "permissionStyles": [            // Permission based overrides, applied from highest to lowest
+  "permissionStyles": [             // Permission based overrides, applied from highest to lowest
     {
-      "permission": "...",  // Permission string required to use
+      "permission": "...",          // Permission string required to use
+      "opLevel": 3,                 // Minimal required op level, set it to 5+ to disable it
       "style": {
         // The same values as in "defaultStyle", however it will handle missing ones just fine
         // By applying next valid 
@@ -52,7 +60,28 @@ Additionally, every message type has few own local variables.
     } // You can have as many permission overrides as possible
       // Just remember to have most important ones above least (so for example Admin, Moderator, Helper)
   ],
-  "legacyChatFormatting": false,    // Enables support for legacy (&x) codes in chat (only when typed by player)
+  "petDeathMessage": "...",         // Death message send when player's pet dies (local variables: ${default_message}, ${pet})
+  "emoticons": {
+    "key": "output"                 // Adds emoticons/text replacements. You can use them with :key: and they are replaced with formatted output
+  },
+  "permissionEmoticons": [          // Permission based emoticons
+    {
+      "permission": "...",          // Permission string required to use
+      "opLevel": 3,                 // Minimal required op level, set it to 5+ to disable it
+      "emotes": {
+        "key": "output"             // Same as "emoticons"
+      }
+    }
+  ],
+  "legacyChatFormatting": false,       // Enables support for legacy (&x) codes in chat (only when typed by player)
+  "parseLinksInChat": true,            // Enables parsing of links in chat
+  "enableMarkdown": true,              // Enables markdown
+  "formattingInPrivateMessages": true, // Enables formatting in private messages
+  "formattingInTeamMessages": true,    // Enables formatting in team messages
+  "linkStyle": "...",                  // Style of link (local variables: ${link})
+  "spoilerStyle": "...",               // Style of spoilers (local variables: ${spoiler})
+  "spoilerSymbol": "▌",                // Spoiler symbol used in spoiler style
+  
   "defaultEnabledFormatting": {
     "type": false
     // Here you can change which formatting is available by default for player
