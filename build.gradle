@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.8-SNAPSHOT'
+	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -34,7 +34,7 @@ dependencies {
 	modImplementation include(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
 	modImplementation include(fabricApi.module("fabric-command-api-v1", project.fabric_version))
 
-	modImplementation include("eu.pb4:placeholder-api:1.1.1+1.17.1")
+	modImplementation include("eu.pb4:placeholder-api:1.2.0+1.18-pre4")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 
 	modRuntime "supercoder79:databreaker:0.2.7"
