@@ -2,8 +2,12 @@ package eu.pb4.styledchat.config.data;
 
 import com.mojang.serialization.RecordBuilder;
 import eu.pb4.placeholders.TextParser;
+import eu.pb4.placeholders.util.GeneralUtils;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.text.MutableText;
+import net.minecraft.util.Hand;
 
 import java.util.*;
 
@@ -63,6 +67,8 @@ public class ConfigData {
         map.put("shears", "✂");
         map.put("bucket", "\uD83E\uDEA3");
         map.put("bell", "\uD83D\uDD14");
+        map.put(StyledChatUtils.ITEM_TAG, "[%player:equipment_slot/mainhand%]");
+        map.put(StyledChatUtils.POS_TAG, "%player:pos_x% %player:pos_y% %player:pos_z%");
 
         return map;
     }
@@ -71,6 +77,18 @@ public class ConfigData {
         for (Map.Entry<String, Boolean> entry : getDefaultFormatting().entrySet()) {
             configData.defaultEnabledFormatting.putIfAbsent(entry.getKey(), entry.getValue());
         }
+
+        if (configData.defaultEnabledFormatting.get(StyledChatUtils.ITEM_TAG)) {
+            configData.defaultEnabledFormatting.remove(StyledChatUtils.ITEM_TAG);
+            configData.emoticons.put(StyledChatUtils.ITEM_TAG, "[%player:equipment_slot/mainhand%]");
+        }
+
+        if (configData.defaultEnabledFormatting.get(StyledChatUtils.POS_TAG)) {
+            configData.defaultEnabledFormatting.remove(StyledChatUtils.POS_TAG);
+            configData.emoticons.put(StyledChatUtils.POS_TAG, "%player:pos_x% %player:pos_y% %player:pos_z%");
+        }
+
+
         return configData;
     }
 

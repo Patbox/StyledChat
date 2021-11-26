@@ -9,12 +9,15 @@ import net.minecraft.server.command.MeCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.AbstractMap;
 import java.util.Map;
+import java.util.Set;
 
 @Mixin(MeCommand.class)
 public class MeCommandMixin {
@@ -25,14 +28,16 @@ public class MeCommandMixin {
 
         Text message;
         Map<String, TextParser.TextFormatterHandler> formatting;
+        Map<String, Text> emotes;
 
         try {
             var player = source.getPlayer();
             formatting = StyledChatUtils.getHandlers(player);
+            emotes = StyledChatUtils.getEmotes(player);
         } catch (Exception e) {
             formatting = TextParser.getRegisteredSafeTags();
+            emotes = StyledChatUtils.getEmotes(context.getSource().getServer());
         }
-        var emotes = config.getEmotes(source);
 
 
         if (formatting.size() != 0) {
@@ -44,7 +49,13 @@ public class MeCommandMixin {
         }
 
         if (emotes.size() != 0) {
-            message = PlaceholderAPI.parsePredefinedText(message, StyledChatUtils.EMOTE_PATTERN, emotes);
+            message = PlaceholderAPI.parsePredefinedText(message, StyledChatUtils.EMOTE_PATTERN, new AbstractMap<String, Text>() {
+                @NotNull
+                @Override
+                public Set<Entry<String, Text>> entrySet() {
+                    return null;
+                }
+            });
         }
 
 

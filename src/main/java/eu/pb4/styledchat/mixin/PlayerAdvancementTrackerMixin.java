@@ -16,7 +16,7 @@ public class PlayerAdvancementTrackerMixin {
 
     @Shadow private ServerPlayerEntity owner;
 
-    @ModifyArg(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
+    @ModifyArg(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
     private Text styledChat_changeAdvancementMessage(Text text) {
         TranslatableText translatableText = (TranslatableText) text;
 

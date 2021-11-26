@@ -18,7 +18,7 @@ import java.util.UUID;
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
 
-    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
     private Text styledChat_replaceDeathMessage(Text text) {
         return ConfigManager.getConfig().getDeath((ServerPlayerEntity) (Object) this, text);
     }

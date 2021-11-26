@@ -7,14 +7,19 @@ import eu.pb4.placeholders.util.TextParserUtils;
 import eu.pb4.styledchat.config.Config;
 import eu.pb4.styledchat.config.ConfigManager;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public final class StyledChatUtils {
@@ -62,14 +67,8 @@ public final class StyledChatUtils {
             }
         }
 
-        if (config.defaultFormattingCodes.getBoolean(ITEM_TAG) ||
-                Permissions.check(source, FORMAT_PERMISSION_BASE + ITEM_TAG, 2)) {
-            handlers.put(ITEM_TAG, (tag, data, input, buildInHandlers, endAt) -> new GeneralUtils.TextLengthPair((MutableText) player.getStackInHand(Hand.MAIN_HAND).toHoverableText(), 0));
-        }
-
-        if (config.defaultFormattingCodes.getBoolean(SPOILER_TAG) ||
-                Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
-            handlers.put(SPOILER_TAG, SPOILER_TAG_HANDLER);
+        if (handlers.containsKey("light_purple")) {
+            handlers.put("pink", handlers.get("light_purple"));
         }
 
         if (config.defaultFormattingCodes.getBoolean(POS_TAG) ||
@@ -96,6 +95,17 @@ public final class StyledChatUtils {
         return handlers;
     }
 
+    /**
+     * I need to rework things within Placeholder API, but I'm too lazy to do it rn.
+     * Whatever I will do it this thing will be replaced with proper thing (I might keep it for sake of backwards compatibility)
+     */
+    public static Map<String, Text> getEmotes(ServerPlayerEntity player) {
+        return new FakeMapPlayer(player, ConfigManager.getConfig().getEmotes(player.getCommandSource()));
+    }
+
+    public static Map<String, Text> getEmotes(MinecraftServer server) {
+        return new FakeMapServer(server, ConfigManager.getConfig().getEmotes(server.getCommandSource()));
+    }
 
     public static String formatMessage(String input, Map<String, TextParser.TextFormatterHandler> handlers) {
         var config = ConfigManager.getConfig();
@@ -131,7 +141,6 @@ public final class StyledChatUtils {
 
                 if (handlers.containsKey("italic")) {
                     input = input.replaceAll(getMarkdownRegex("*", "\\*"), "<italic>$2</italic>");
-                    input = input.replaceAll(getMarkdownRegex("_", "_"), "<italic>$2</italic>");
                 }
             }
         } catch (Exception e) {
@@ -143,5 +152,63 @@ public final class StyledChatUtils {
 
     private static String getMarkdownRegex(String base, String sides) {
         return "(" + sides + ")(?<id>[^" + base +"]+)(" + sides + ")";
+    }
+
+    public static abstract class FakeMap extends AbstractMap<String, Text> {
+        private final Map<String, Text> texts;
+        private final Map<String, Text> cache = new HashMap<>();
+
+        public FakeMap(Map<String, Text> texts) {
+            this.texts = texts;
+        }
+
+        @Override
+        public Text get(Object key) {
+            var text = this.cache.get(key);
+            if (text != null) {
+                return text;
+            }
+
+            text = this.texts.get(key);
+            return text != null ? this.cache.put((String) key, this.getParsed(text)) : null;
+        }
+
+        @NotNull
+        @Override
+        public Set<Entry<String, Text>> entrySet() {
+            return texts.entrySet();
+        }
+
+        public abstract Text getParsed(Text text);
+    }
+
+
+    public static class FakeMapPlayer extends FakeMap {
+
+        private final ServerPlayerEntity player;
+
+        public FakeMapPlayer(ServerPlayerEntity player, Map<String, Text> texts) {
+            super(texts);
+            this.player = player;
+        }
+
+        @Override
+        public Text getParsed(Text text) {
+            return PlaceholderAPI.parseText(text, this.player);
+        }
+    }
+
+    public static class FakeMapServer extends FakeMap {
+        private final MinecraftServer server;
+
+        public FakeMapServer(MinecraftServer server, Map<String, Text> texts) {
+            super(texts);
+            this.server = server;
+        }
+
+        @Override
+        public Text getParsed(Text text) {
+            return PlaceholderAPI.parseText(text, this.server);
+        }
     }
 }

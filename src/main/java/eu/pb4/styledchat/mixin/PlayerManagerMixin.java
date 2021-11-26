@@ -35,7 +35,7 @@ public class PlayerManagerMixin {
         this.temporaryPlayer = null;
     }
 
-    @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
+    @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
     private Text styledChat_updatePlayerNameAfterMessage(Text text) {
         if (this.temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
             return ConfigManager.getConfig().getJoinFirstTime(this.temporaryPlayer);
@@ -49,7 +49,7 @@ public class PlayerManagerMixin {
         }
     }
 
-    @Inject(method = "broadcastChatMessage", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "broadcast", at = @At("HEAD"), cancellable = true)
     private void styledChat_excludeSendingOfHiddenMessages(Text message, MessageType type, UUID sender, CallbackInfo ci) {
         if (message instanceof TranslatableText text && text.getKey().equals(StyledChatUtils.IGNORED_TEXT_KEY)) {
             ci.cancel();

@@ -31,7 +31,7 @@ public class ServerPlayNetworkManagerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
+    @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
     private Text styledChat_replaceDisconnectMessage(Text text) {
         return ConfigManager.getConfig().getLeft(this.player);
     }
@@ -40,7 +40,7 @@ public class ServerPlayNetworkManagerMixin {
     private void styledChat_replaceChatMessage(PlayerManager playerManager, Text serverMessage, Function<ServerPlayerEntity, Text> playerMessageFactory, MessageType playerMessageType, UUID sender, TextStream.Message message) {
         var handlers = StyledChatUtils.getHandlers(this.player);
         Config config = ConfigManager.getConfig();
-        var emotes = config.getEmotes(this.player.getCommandSource());
+        var emotes = StyledChatUtils.getEmotes(this.player);
 
         String rawMessage =  message.getRaw();
         String filteredMessage = message.getFiltered();

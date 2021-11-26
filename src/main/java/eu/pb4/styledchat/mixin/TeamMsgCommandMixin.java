@@ -28,15 +28,16 @@ public class TeamMsgCommandMixin {
         var config = ConfigManager.getConfig();
         if (config.configData.formattingInTeamMessages) {
             Map<String, TextParser.TextFormatterHandler> formatting;
+            Map<String, Text> emotes;
 
             try {
                 var player = source.getPlayer();
                 formatting = StyledChatUtils.getHandlers(player);
+                emotes = StyledChatUtils.getEmotes(player);
             } catch (Exception e) {
                 formatting = TextParser.getRegisteredSafeTags();
+                emotes = StyledChatUtils.getEmotes(source.getServer());
             }
-
-            var emotes = config.getEmotes(source);
 
             if (formatting.size() != 0) {
                 var ogMessage = message.getString();
