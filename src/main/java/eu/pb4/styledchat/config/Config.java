@@ -55,9 +55,10 @@ public final class Config {
         for (var entry : data.permissionEmoticons) {
             var emotes = PermissionEmotes.of(entry.permission, entry.opLevel);
 
-            for (var emote : entry.emotes.entrySet()) {
+            for (var emote : entry.emoticons.entrySet()) {
                 emotes.emotes().put(emote.getKey(), TextParser.parse(emote.getValue()));
             }
+            this.permissionEmotes.add(emotes);
         }
 
 

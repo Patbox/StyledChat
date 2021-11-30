@@ -89,6 +89,13 @@ public class ConfigData {
         }
 
 
+        for (var entry : configData.permissionEmoticons) {
+            if (entry.emotes != null) {
+                entry.emoticons = entry.emotes;
+                entry.emotes = null;
+            }
+        }
+
         return configData;
     }
 
@@ -108,6 +115,8 @@ public class ConfigData {
     public static class PermissionEmotes {
         public String permission = "";
         public int opLevel = 3;
-        public Map<String, String> emotes = Collections.EMPTY_MAP;
+        public Map<String, String> emoticons = Collections.EMPTY_MAP;
+        @Deprecated
+        public Map<String, String> emotes = null;
     }
 }

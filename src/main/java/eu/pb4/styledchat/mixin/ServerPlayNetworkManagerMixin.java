@@ -52,11 +52,10 @@ public class ServerPlayNetworkManagerMixin {
             rawMessage = StyledChatEvents.PRE_MESSAGE_CONTENT_SEND.invoker().onPreMessage(message.getRaw(), player, false);
 
             rawMessage = StyledChatUtils.formatMessage(rawMessage, handlers);
-
             Text rawText = config.getChat(this.player,
                     StyledChatEvents.MESSAGE_CONTENT_SEND.invoker().onMessage(handlers.size() > 0
                                     ? PlaceholderAPI.parsePredefinedText(TextParser.parse(rawMessage, handlers), StyledChatUtils.EMOTE_PATTERN, emotes)
-                                    : new LiteralText(message.getRaw()),
+                                    : PlaceholderAPI.parsePredefinedText(new LiteralText(message.getRaw()), StyledChatUtils.EMOTE_PATTERN, emotes),
                             player, false)
             );
 
@@ -72,14 +71,14 @@ public class ServerPlayNetworkManagerMixin {
 
             Text rawText = config.getChat(this.player,
                     StyledChatEvents.MESSAGE_CONTENT_SEND.invoker().onMessage(handlers.size() > 0
-                                    ? TextParser.parse(rawMessage, handlers)
-                                    : new LiteralText(message.getRaw()),
+                                    ? PlaceholderAPI.parsePredefinedText(TextParser.parse(rawMessage, handlers), StyledChatUtils.EMOTE_PATTERN, emotes)
+                                    : PlaceholderAPI.parsePredefinedText(new LiteralText(message.getRaw()), StyledChatUtils.EMOTE_PATTERN, emotes),
                             player, false)
             );
             Text filteredText = config.getChat(this.player,
                     StyledChatEvents.MESSAGE_CONTENT_SEND.invoker().onMessage(handlers.size() > 0
-                                    ? TextParser.parse(filteredMessage, handlers)
-                                    : new LiteralText(message.getFiltered()),
+                                    ? PlaceholderAPI.parsePredefinedText(TextParser.parse(filteredMessage, handlers), StyledChatUtils.EMOTE_PATTERN, emotes)
+                                    : PlaceholderAPI.parsePredefinedText(new LiteralText(message.getFiltered()), StyledChatUtils.EMOTE_PATTERN, emotes),
                             player, true)
             );
 

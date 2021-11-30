@@ -67,6 +67,11 @@ public final class StyledChatUtils {
             }
         }
 
+        if (config.defaultFormattingCodes.getBoolean(SPOILER_TAG)
+                || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
+            handlers.put(SPOILER_TAG, SPOILER_TAG_HANDLER);
+        }
+
         if (handlers.containsKey("light_purple")) {
             handlers.put("pink", handlers.get("light_purple"));
         }
@@ -170,7 +175,13 @@ public final class StyledChatUtils {
             }
 
             text = this.texts.get(key);
-            return text != null ? this.cache.put((String) key, this.getParsed(text)) : null;
+
+            if (text != null) {
+                var out = this.getParsed(text);
+                this.cache.put((String) key, out);
+                return out;
+            }
+            return null;
         }
 
         @NotNull
