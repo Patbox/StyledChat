@@ -112,6 +112,20 @@ public final class StyledChatUtils {
         return new FakeMapServer(server, ConfigManager.getConfig().getEmotes(server.getCommandSource()));
     }
 
+    public static Text formatFor(ServerPlayerEntity player, String input) {
+        return PlaceholderAPI.parsePredefinedText(
+                TextParser.parse(StyledChatUtils.formatMessage(input, getHandlers(player))),
+                EMOTE_PATTERN, getEmotes(player)
+        );
+    }
+
+    public static Text formatFor(MinecraftServer server, String input) {
+        return PlaceholderAPI.parsePredefinedText(
+                TextParser.parse(StyledChatUtils.formatMessage(input, TextParser.getRegisteredTags())),
+                EMOTE_PATTERN, getEmotes(server)
+        );
+    }
+
     public static String formatMessage(String input, Map<String, TextParser.TextFormatterHandler> handlers) {
         var config = ConfigManager.getConfig();
         if (handlers.containsKey(StyledChatUtils.LINK_TAG)) {

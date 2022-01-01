@@ -10,26 +10,26 @@ import net.fabricmc.loader.api.FabricLoader;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class ConfigManager {
     public static final int VERSION = 2;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient().create();
 
-    private static Config CONFIG;
+    private static Config CONFIG = null;
 
     public static Config getConfig() {
         return CONFIG;
     }
 
     public static boolean loadConfig() {
-        CONFIG = null;
         try {
             ConfigData config;
             File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "styled-chat.json");
 
 
             if (configFile.exists()) {
-                String json = IOUtils.toString(new InputStreamReader(new FileInputStream(configFile), "UTF-8"));
+                String json = IOUtils.toString(new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8));
                 VersionConfigData versionConfigData = GSON.fromJson(json, VersionConfigData.class);
 
                 config = ConfigData.transform(switch (versionConfigData.CONFIG_VERSION_DONT_TOUCH_THIS) {
@@ -42,18 +42,19 @@ public class ConfigManager {
                 config = new ConfigData();
             }
 
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8"));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8));
             writer.write(GSON.toJson(config));
             writer.close();
 
 
             CONFIG = new Config(config);
             return true;
-        }
-        catch(IOException exception) {
-            StyledChatMod.LOGGER.error("Something went wrong while reading config!");
+        } catch(Exception exception) {
+            StyledChatMod.LOGGER.error("Something went wrong while reading config! Make sure format is correct!");
             exception.printStackTrace();
-            CONFIG = new Config(new ConfigData());
+            if (CONFIG == null) {
+                CONFIG = new Config(new ConfigData());
+            }
             return false;
         }
     }

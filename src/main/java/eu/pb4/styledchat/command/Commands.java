@@ -3,22 +3,17 @@ package eu.pb4.styledchat.command;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import eu.pb4.placeholders.TextParser;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.TextArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Texts;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
-
-import java.util.Iterator;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -45,7 +40,13 @@ public class Commands {
                                     .then(argument("message", StringArgumentType.greedyString())
                                             .executes((context) -> {
                                                         int i = 0;
-                                                        var parsed = TextParser.parse(StyledChatUtils.formatMessage(context.getArgument("message", String.class), TextParser.getRegisteredTags()));
+                                                        Text parsed;
+                                                        try {
+                                                            parsed = StyledChatUtils.formatFor(context.getSource().getPlayer(), context.getArgument("message", String.class));
+                                                        } catch (Exception e) {
+                                                            parsed = StyledChatUtils.formatFor(context.getSource().getServer(), context.getArgument("message", String.class));
+
+                                                        }
 
                                                         for (var player : EntityArgumentType.getPlayers(context, "targets")) {
                                                             player.sendSystemMessage(parsed, Util.NIL_UUID);
@@ -64,7 +65,7 @@ public class Commands {
         if (ConfigManager.loadConfig()) {
             context.getSource().sendFeedback(new LiteralText("Reloaded config!"), false);
         } else {
-            context.getSource().sendError(new LiteralText("Error accrued while reloading config!").formatted(Formatting.RED));
+            context.getSource().sendError(new LiteralText("Error occurred while reloading config! Check console for more information!").formatted(Formatting.RED));
 
         }
         return 1;

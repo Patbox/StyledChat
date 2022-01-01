@@ -73,7 +73,7 @@ public class ChatStyle {
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
         if (this.displayName == null) {
             return null;
-        } else if (this.advancementGoal == StyledChatUtils.IGNORED_TEXT) {
+        } else if (this.displayName == StyledChatUtils.IGNORED_TEXT) {
             return vanillaDisplayName;
         }
 
@@ -81,6 +81,8 @@ public class ChatStyle {
                 PlaceholderAPI.parseText(this.displayName, player),
                 PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("vanillaDisplayName", vanillaDisplayName,
+                    "player", vanillaDisplayName,
+                    "default", vanillaDisplayName,
                         "name", player.getName())
         );
     }

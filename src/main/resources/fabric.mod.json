@@ -14,7 +14,7 @@
   },
 
   "license": "LGPLv3",
-
+  "icon": "./assets/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -27,5 +27,12 @@
 
   "depends": {
     "minecraft": ">=1.18-rc.1"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://pb4.eu/discord"
+      }
+    }
   }
 }

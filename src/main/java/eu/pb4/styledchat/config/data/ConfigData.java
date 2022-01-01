@@ -1,13 +1,9 @@
 package eu.pb4.styledchat.config.data;
 
-import com.mojang.serialization.RecordBuilder;
 import eu.pb4.placeholders.TextParser;
-import eu.pb4.placeholders.util.GeneralUtils;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.text.MutableText;
-import net.minecraft.util.Hand;
+import net.minecraft.util.Formatting;
 
 import java.util.*;
 
@@ -22,16 +18,15 @@ public class ConfigData {
 
     public List<PermissionEmotes> permissionEmoticons = new ArrayList<>();
 
-    public boolean legacyChatFormatting = false;
+    public boolean legacyChatFormatting = true;
     public boolean parseLinksInChat = true;
     public boolean enableMarkdown = true;
     public boolean formattingInPrivateMessages = true;
     public boolean formattingInTeamMessages = true;
-    public String linkStyle = "<underline><c:#0000EE>${link}";
+    public String linkStyle = "<underline><c:#7878ff>${link}";
     public String spoilerStyle = "<gray>${spoiler}";
     public String spoilerSymbol = "▌";
     public HashMap<String, Boolean> defaultEnabledFormatting = getDefaultFormatting();
-
 
 
     private static HashMap<String, Boolean> getDefaultFormatting() {
@@ -49,6 +44,13 @@ public class ConfigData {
         map.put("strikethrough", true);
         map.put("st", true);
         map.put("underline", true);
+
+        for (var formatting : Formatting.values()) {
+            if (formatting.isColor()) {
+                map.put(formatting.getName(), true);
+            }
+        }
+
         return map;
     }
 

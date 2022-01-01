@@ -49,13 +49,7 @@ public class MeCommandMixin {
         }
 
         if (emotes.size() != 0) {
-            message = PlaceholderAPI.parsePredefinedText(message, StyledChatUtils.EMOTE_PATTERN, new AbstractMap<String, Text>() {
-                @NotNull
-                @Override
-                public Set<Entry<String, Text>> entrySet() {
-                    return null;
-                }
-            });
+            message = PlaceholderAPI.parsePredefinedText(message, StyledChatUtils.EMOTE_PATTERN, emotes);
         }
 
 

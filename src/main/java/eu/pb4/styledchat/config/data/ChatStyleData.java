@@ -26,14 +26,14 @@ public class ChatStyleData {
 
     private static ChatStyleData getDefault() {
         ChatStyleData data = new ChatStyleData();
-        data.displayName = "${vanillaDisplayName}";
+        data.displayName = "${default}";
         data.chat = "<${player}> ${message}";
         data.join = "<yellow><lang:multiplayer.player.joined:'${player}'></yellow>";
         data.joinRenamed = "<yellow><lang:multiplayer.player.joined.renamed:'${player}':'${old_name}'></yellow>";
         data.joinFirstTime = "<yellow><lang:multiplayer.player.joined:'${player}'></yellow>";
         data.left = "<yellow><lang:multiplayer.player.left:'${player}'></yellow>";
         data.death = "${default_message}";
-        data.advancementTask = "<><lang:chat.type.advancement.task:'${player}':'${advancement}'>";
+        data.advancementTask = "<lang:chat.type.advancement.task:'${player}':'${advancement}'>";
         data.advancementGoal = "<lang:chat.type.advancement.goal:'${player}':'${advancement}'>";
         data.advancementChallenge = "<lang:chat.type.advancement.challenge:'${player}':'${advancement}'>";
         data.teamChatSent = "<lang:'chat.type.team.sent':'<hover\\:\\'<lang\\:chat.type.team.hover>\\'><suggest_command\\:\\'/teammsg \\'>${team}':'${displayName}':'${message}'>";
@@ -51,6 +51,7 @@ public class ChatStyleData {
         this.chat = Objects.requireNonNullElse(this.chat, DEFAULT.chat);
         this.join = Objects.requireNonNullElse(this.join, DEFAULT.join);
         this.joinRenamed = Objects.requireNonNullElse(this.joinRenamed, DEFAULT.joinRenamed);
+        this.joinFirstTime = Objects.requireNonNullElse(this.joinFirstTime, DEFAULT.joinFirstTime);
         this.left = Objects.requireNonNullElse(this.left, DEFAULT.left);
         this.death = Objects.requireNonNullElse(this.death, DEFAULT.death);
         this.advancementTask = Objects.requireNonNullElse(this.advancementTask, DEFAULT.advancementTask);
