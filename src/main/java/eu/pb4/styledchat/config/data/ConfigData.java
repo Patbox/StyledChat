@@ -80,17 +80,6 @@ public class ConfigData {
             configData.defaultEnabledFormatting.putIfAbsent(entry.getKey(), entry.getValue());
         }
 
-        if (configData.defaultEnabledFormatting.get(StyledChatUtils.ITEM_TAG)) {
-            configData.defaultEnabledFormatting.remove(StyledChatUtils.ITEM_TAG);
-            configData.emoticons.put(StyledChatUtils.ITEM_TAG, "[%player:equipment_slot/mainhand%]");
-        }
-
-        if (configData.defaultEnabledFormatting.get(StyledChatUtils.POS_TAG)) {
-            configData.defaultEnabledFormatting.remove(StyledChatUtils.POS_TAG);
-            configData.emoticons.put(StyledChatUtils.POS_TAG, "%player:pos_x% %player:pos_y% %player:pos_z%");
-        }
-
-
         for (var entry : configData.permissionEmoticons) {
             if (entry.emotes != null) {
                 entry.emoticons = entry.emotes;
