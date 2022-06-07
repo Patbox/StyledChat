@@ -127,7 +127,7 @@ public final class StyledChatUtils {
         if (config.configData.legacyChatFormatting) {
             for (var formatting : Formatting.values()) {
                 if (handlers.contains(formatting.getName())) {
-                    input = input.replace(String.copyValueOf(new char[]{'&', formatting.getCode()}), "<" + formatting.getName() + ">");
+                    input = input.replace("&" + formatting.getCode(), "<" + formatting.getName() + ">");
                 }
             }
         }
@@ -301,8 +301,6 @@ public final class StyledChatUtils {
     public static Text formatMessage(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
         Config config = ConfigManager.getConfig();
         var ext = (ExtSignedMessage) (Object) message;
-
-        System.out.println(ext.styledChat_getOriginal());
 
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(source, ext.styledChat_getOriginal());

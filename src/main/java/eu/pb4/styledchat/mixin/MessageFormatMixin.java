@@ -1,5 +1,6 @@
 package eu.pb4.styledchat.mixin;
 
+import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtMessageFormat;
 import eu.pb4.styledchat.StyledChatUtils;
 import net.minecraft.command.argument.MessageArgumentType;
@@ -23,7 +24,7 @@ public class MessageFormatMixin implements ExtMessageFormat {
 
     @Redirect(method = "decorate", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private <T> MessageDecorator styledChat_replaceDecorator2(MinecraftServer instance) {
-        if (styledChat_context != null) {
+        if (this.styledChat_context != null && ConfigManager.getConfig().configData.sendFullMessageInChatPreview) {
             return StyledChatUtils.getCommandDecorator(this.styledChat_context, this.styledChat_source, this.styledChat_args);
         }
         return StyledChatUtils.getRawDecorator();

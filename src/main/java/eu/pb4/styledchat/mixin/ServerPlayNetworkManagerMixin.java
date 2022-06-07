@@ -52,7 +52,7 @@ public class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHandler {
 
     @Redirect(method = "decorateChat", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_replaceDecorator2(MinecraftServer instance) {
-        return StyledChatUtils.getChatDecorator();
+        return ConfigManager.getConfig().configData.sendFullMessageInChatPreview ? StyledChatUtils.getChatDecorator() : StyledChatUtils.getRawDecorator();
     }
 
     @Inject(method = "sendChatPreviewPacket", at = @At("HEAD"))

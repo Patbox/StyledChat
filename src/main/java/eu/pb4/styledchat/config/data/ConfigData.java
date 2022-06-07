@@ -22,6 +22,7 @@ public class ConfigData {
     public boolean parseLinksInChat = true;
     public boolean enableMarkdown = true;
     public boolean allowModdedDecorators = true;
+    public boolean sendFullMessageInChatPreview = true;
     public String linkStyle = "<underline><c:#7878ff>${link}";
     public String spoilerStyle = "<gray>${spoiler}";
     public String spoilerSymbol = "▌";
