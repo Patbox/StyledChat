@@ -1,20 +1,21 @@
 package eu.pb4.styledchat;
 
-import eu.pb4.placeholders.TextParser;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.placeholders.api.parsers.TextParserV1;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-
-import java.util.function.BiConsumer;
 
 public class StyledChatEvents {
     /**
      * Event ran for message content before they are formatted (Strings)
      */
-    public static final Event<PreMessageEvent> PRE_MESSAGE_CONTENT_SEND = EventFactory.createArrayBacked(PreMessageEvent.class, callbacks -> (message, player, filtered) -> {
+    public static final Event<PreMessageEvent> PRE_MESSAGE_CONTENT = EventFactory.createArrayBacked(PreMessageEvent.class, callbacks -> (message, player) -> {
         for (var callback : callbacks) {
-            message = callback.onPreMessage(message, player, filtered);
+            message = callback.onPreMessage(message, player);
         }
 
         return message;
@@ -23,20 +24,9 @@ public class StyledChatEvents {
     /**
      * Event ran for message content after it being formatted (Text)
      */
-    public static final Event<MessageEvent> MESSAGE_CONTENT_SEND = EventFactory.createArrayBacked(MessageEvent.class, callbacks -> (message, player, filtered) -> {
+    public static final Event<MessageEvent> MESSAGE_CONTENT = EventFactory.createArrayBacked(MessageEvent.class, callbacks -> (message, player) -> {
         for (var callback : callbacks) {
-            message = callback.onMessage(message, player, filtered);
-        }
-
-        return message;
-    });
-
-    /**
-     * Event ran before message is send to someone, it is fully formatted (including template)
-     */
-    public static final Event<MessageToEvent> MESSAGE_TO_SEND = EventFactory.createArrayBacked(MessageToEvent.class, callbacks -> (message, sender, receiver, filtered) -> {
-        for (var callback : callbacks) {
-            message = callback.onMessageTo(message, sender, receiver, filtered);
+            message = callback.onMessage(message, player);
         }
 
         return message;
@@ -52,18 +42,14 @@ public class StyledChatEvents {
     });
 
     public interface FormattingCreationEvent {
-        void onFormattingBuild(ServerPlayerEntity player, BiConsumer<String, TextParser.TextFormatterHandler> builder);
+        void onFormattingBuild(ServerCommandSource player, TextParserV1 builder);
     }
 
     public interface PreMessageEvent {
-        String onPreMessage(String message, ServerPlayerEntity player, boolean filtered);
+        String onPreMessage(String message, PlaceholderContext context);
     }
 
     public interface MessageEvent {
-        Text onMessage(Text message, ServerPlayerEntity player, boolean filtered);
-    }
-
-    public interface MessageToEvent {
-        Text onMessageTo(Text message, ServerPlayerEntity sender, ServerPlayerEntity receiver, boolean filtered);
+        TextNode onMessage(TextNode message, PlaceholderContext context);
     }
 }

@@ -1,15 +1,16 @@
 package eu.pb4.styledchat.config;
 
 
-import eu.pb4.placeholders.PlaceholderAPI;
-import eu.pb4.placeholders.TextParser;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.TextParserUtils;
+import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -24,11 +25,11 @@ public final class Config {
     private final ChatStyle defaultStyle;
     private final List<PermissionStyle> permissionStyle;
     public final Object2BooleanArrayMap<String> defaultFormattingCodes;
-    public final Text linkStyle;
-    public final Text spoilerStyle;
-    private final Text petDeathMessage;
+    public final TextNode linkStyle;
+    public final TextNode spoilerStyle;
+    private final TextNode petDeathMessage;
 
-    private final Map<String, Text> emotes;
+    private final Map<String, TextNode> emotes;
     private final List<PermissionEmotes> permissionEmotes;
 
     public Config(ConfigData data) {
@@ -36,8 +37,8 @@ public final class Config {
         this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.DEFAULT));
 
         this.permissionStyle = new ArrayList<>();
-        this.linkStyle = TextParser.parse(data.linkStyle);
-        this.spoilerStyle = TextParser.parse(data.spoilerStyle);
+        this.linkStyle = TextParserUtils.formatNodes(data.linkStyle);
+        this.spoilerStyle = TextParserUtils.formatNodes(data.spoilerStyle);
 
         for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
             this.permissionStyle.add(new PermissionStyle(entry.permission, entry.opLevel, new ChatStyle(entry.style)));
@@ -48,7 +49,7 @@ public final class Config {
         this.emotes = new HashMap<>();
 
         for (var entry : data.emoticons.entrySet()) {
-            this.emotes.put(entry.getKey(), TextParser.parse(entry.getValue()));
+            this.emotes.put(entry.getKey(), StyledChatUtils.parseText(entry.getValue()));
         }
 
         this.permissionEmotes = new ArrayList<>();
@@ -56,7 +57,7 @@ public final class Config {
             var emotes = PermissionEmotes.of(entry.permission, entry.opLevel);
 
             for (var emote : entry.emoticons.entrySet()) {
-                emotes.emotes().put(emote.getKey(), TextParser.parse(emote.getValue()));
+                emotes.emotes().put(emote.getKey(), StyledChatUtils.parseText(emote.getValue()));
             }
             this.permissionEmotes.add(emotes);
         }
@@ -308,15 +309,16 @@ public final class Config {
             return null;
         }
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.petDeathMessage, entity.getServer()),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.petDeathMessage,
+                PlaceholderContext.of(entity),
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("pet", entity.getDisplayName(),
                         "default_message", vanillaMessage)
         );
     }
 
-    public Map<String, Text> getEmotes(ServerCommandSource source) {
+    public Map<String, TextNode> getEmotes(ServerCommandSource source) {
         var base = new HashMap<>(this.emotes);
 
         for (var entry : this.permissionEmotes) {
@@ -328,10 +330,10 @@ public final class Config {
         return base;
     }
 
-    private static record PermissionStyle(String permission, int opLevel, ChatStyle style) {
+    private record PermissionStyle(String permission, int opLevel, ChatStyle style) {
     }
 
-    private static record PermissionEmotes(String permission, int opLevel, Map<String, Text> emotes) {
+    private record PermissionEmotes(String permission, int opLevel, Map<String, TextNode> emotes) {
         public static PermissionEmotes of(String permission, int opLevel) {
             return new PermissionEmotes(permission, opLevel, new HashMap<>());
         }

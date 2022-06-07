@@ -1,33 +1,34 @@
 package eu.pb4.styledchat.config;
 
-import eu.pb4.placeholders.PlaceholderAPI;
+import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
 import java.util.Map;
 
 public class ChatStyle {
-    public final Text displayName;
-    public final Text chat;
-    public final Text join;
-    public final Text joinFirstTime;
-    public final Text joinRenamed;
-    public final Text left;
-    public final Text death;
-    public final Text advancementTask;
-    public final Text advancementChallenge;
-    public final Text advancementGoal;
-    public final Text privateMessageSent;
-    public final Text privateMessageReceived;
-    public final Text teamChatSent;
-    public final Text teamChatReceived;
-    public final Text sayCommand;
-    public final Text meCommand;
+    public final TextNode displayName;
+    public final TextNode chat;
+    public final TextNode join;
+    public final TextNode joinFirstTime;
+    public final TextNode joinRenamed;
+    public final TextNode left;
+    public final TextNode death;
+    public final TextNode advancementTask;
+    public final TextNode advancementChallenge;
+    public final TextNode advancementGoal;
+    public final TextNode privateMessageSent;
+    public final TextNode privateMessageReceived;
+    public final TextNode teamChatSent;
+    public final TextNode teamChatReceived;
+    public final TextNode sayCommand;
+    public final TextNode meCommand;
 
     public ChatStyle(ChatStyleData data, ChatStyle defaultStyle) {
         this.displayName = data.displayName != null ? StyledChatUtils.parseText(data.displayName.replace("%player:displayname%", "")) : defaultStyle.displayName;
@@ -69,20 +70,21 @@ public class ChatStyle {
     }
 
 
-
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
         if (this.displayName == null) {
             return null;
         } else if (this.displayName == StyledChatUtils.IGNORED_TEXT) {
             return vanillaDisplayName;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.displayName, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.displayName,
+                context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("vanillaDisplayName", vanillaDisplayName,
-                    "player", vanillaDisplayName,
-                    "default", vanillaDisplayName,
+                        "player", vanillaDisplayName,
+                        "default", vanillaDisplayName,
                         "name", player.getName())
         );
     }
@@ -93,10 +95,12 @@ public class ChatStyle {
         } else if (this.chat == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.chat, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.chat,
+                context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
                         "message", message)
         );
@@ -108,10 +112,12 @@ public class ChatStyle {
         } else if (this.join == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.join, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.join,
+                context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName())
         );
     }
@@ -122,10 +128,11 @@ public class ChatStyle {
         } else if (this.joinFirstTime == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.joinFirstTime, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.joinFirstTime,
+                context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName())
         );
     }
@@ -136,12 +143,12 @@ public class ChatStyle {
         } else if (this.joinRenamed == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.joinRenamed, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.joinRenamed, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
-                        "old_name", new LiteralText(oldName))
+                        "old_name", Text.literal(oldName))
         );
     }
 
@@ -151,10 +158,10 @@ public class ChatStyle {
         } else if (this.left == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.left, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.left, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName())
         );
     }
@@ -165,10 +172,10 @@ public class ChatStyle {
         } else if (this.death == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.death, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.death, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
                         "default_message", vanillaMessage)
         );
@@ -180,10 +187,10 @@ public class ChatStyle {
         } else if (this.advancementGoal == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.advancementGoal, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.advancementGoal, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
                         "advancement", advancement)
         );
@@ -192,13 +199,13 @@ public class ChatStyle {
     public Text getAdvancementTask(ServerPlayerEntity player, Text advancement) {
         if (this.advancementTask == null) {
             return null;
-        }else if (this.advancementTask == StyledChatUtils.IGNORED_TEXT) {
+        } else if (this.advancementTask == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.advancementTask, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.advancementTask, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
                         "advancement", advancement)
         );
@@ -207,13 +214,13 @@ public class ChatStyle {
     public Text getAdvancementChallenge(ServerPlayerEntity player, Text advancement) {
         if (this.advancementChallenge == null) {
             return null;
-        }else if (this.advancementChallenge == StyledChatUtils.IGNORED_TEXT) {
+        } else if (this.advancementChallenge == StyledChatUtils.IGNORED_TEXT) {
             return StyledChatUtils.IGNORED_TEXT;
         }
+        var context = PlaceholderContext.of(player);
 
-        return PlaceholderAPI.parsePredefinedText(
-                PlaceholderAPI.parseText(this.advancementChallenge, player),
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(this.advancementChallenge, context,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("player", player.getDisplayName(),
                         "advancement", advancement)
         );
@@ -228,17 +235,17 @@ public class ChatStyle {
 
         try {
             var player = source.getPlayer();
-            return PlaceholderAPI.parsePredefinedText(
-                    PlaceholderAPI.parseText(this.sayCommand, player),
-                    PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+            return Placeholders.parseText(
+                    Placeholders.parseText(this.sayCommand, PlaceholderContext.of(player)),
+                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                     Map.of("player", player.getDisplayName(),
                             "displayName", source.getDisplayName(),
                             "message", message)
             );
         } catch (Exception e) {
-            return PlaceholderAPI.parsePredefinedText(
-                    PlaceholderAPI.parseText(this.sayCommand, source.getServer()),
-                    PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+            return Placeholders.parseText(
+                    Placeholders.parseText(this.sayCommand, PlaceholderContext.of(source.getServer())),
+                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                     Map.of("player", source.getDisplayName(),
                             "displayName", source.getDisplayName(),
                             "message", message)
@@ -255,17 +262,17 @@ public class ChatStyle {
 
         try {
             var player = source.getPlayer();
-            return PlaceholderAPI.parsePredefinedText(
-                    PlaceholderAPI.parseText(this.meCommand, player),
-                    PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+            return Placeholders.parseText(
+                    Placeholders.parseText(this.meCommand, PlaceholderContext.of(player)),
+                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                     Map.of("player", player.getDisplayName(),
                             "displayName", source.getDisplayName(),
                             "message", message)
             );
         } catch (Exception e) {
-            return PlaceholderAPI.parsePredefinedText(
-                    PlaceholderAPI.parseText(this.meCommand, source.getServer()),
-                    PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+            return Placeholders.parseText(
+                    Placeholders.parseText(this.meCommand, PlaceholderContext.of(source.getServer())),
+                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                     Map.of("player", source.getDisplayName(),
                             "displayName", source.getDisplayName(),
                             "message", message)
@@ -280,13 +287,10 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        var template = placeholderContext instanceof ServerPlayerEntity player
-                ? PlaceholderAPI.parseText(this.privateMessageSent, player)
-                : PlaceholderAPI.parseText(this.privateMessageSent, (MinecraftServer) placeholderContext);
-
-        return PlaceholderAPI.parsePredefinedText(
-                template,
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.privateMessageSent,
+                placeholderContext instanceof ServerPlayerEntity player ? PlaceholderContext.of(player) : PlaceholderContext.of((MinecraftServer) placeholderContext),
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("sender", sender,
                         "receiver", receiver,
                         "message", message)
@@ -300,13 +304,11 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        var template = placeholderContext instanceof ServerPlayerEntity player
-                ? PlaceholderAPI.parseText(this.privateMessageReceived, player)
-                : PlaceholderAPI.parseText(this.privateMessageReceived, (MinecraftServer) placeholderContext);
+        return Placeholders.parseText(
+                this.privateMessageReceived,
+                placeholderContext instanceof ServerPlayerEntity player ? PlaceholderContext.of(player) : PlaceholderContext.of((MinecraftServer) placeholderContext),
 
-        return PlaceholderAPI.parsePredefinedText(
-                template,
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("sender", sender,
                         "receiver", receiver,
                         "message", message)
@@ -320,13 +322,11 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        var template = placeholderContext instanceof ServerPlayerEntity player
-                ? PlaceholderAPI.parseText(this.teamChatSent, player)
-                : PlaceholderAPI.parseText(this.teamChatSent, (MinecraftServer) placeholderContext);
+        return Placeholders.parseText(
+                this.teamChatSent,
+                placeholderContext instanceof ServerPlayerEntity player ? PlaceholderContext.of(player) : PlaceholderContext.of((MinecraftServer) placeholderContext),
 
-        return PlaceholderAPI.parsePredefinedText(
-                template,
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("team", team,
                         "displayName", displayName,
                         "message", message)
@@ -340,13 +340,10 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        var template = placeholderContext instanceof ServerPlayerEntity player
-                ? PlaceholderAPI.parseText(this.teamChatReceived, player)
-                : PlaceholderAPI.parseText(this.teamChatReceived, (MinecraftServer) placeholderContext);
-
-        return PlaceholderAPI.parsePredefinedText(
-                template,
-                PlaceholderAPI.PREDEFINED_PLACEHOLDER_PATTERN,
+        return Placeholders.parseText(
+                this.teamChatReceived,
+                placeholderContext instanceof ServerPlayerEntity player ? PlaceholderContext.of(player) : PlaceholderContext.of((MinecraftServer) placeholderContext),
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("team", team,
                         "displayName", displayName,
                         "message", message)

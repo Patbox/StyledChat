@@ -5,7 +5,7 @@ import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.TranslatableTextContent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,9 +16,9 @@ public class PlayerAdvancementTrackerMixin {
 
     @Shadow private ServerPlayerEntity owner;
 
-    @ModifyArg(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"))
+    @ModifyArg(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"))
     private Text styledChat_changeAdvancementMessage(Text text) {
-        TranslatableText translatableText = (TranslatableText) text;
+        var translatableText = (TranslatableTextContent) text.getContent();
 
         Config config = ConfigManager.getConfig();
         Text advancement = (Text) translatableText.getArgs()[1];

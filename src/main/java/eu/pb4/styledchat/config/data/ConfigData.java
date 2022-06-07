@@ -1,6 +1,6 @@
 package eu.pb4.styledchat.config.data;
 
-import eu.pb4.placeholders.TextParser;
+import eu.pb4.placeholders.api.parsers.TextParserV1;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.util.Formatting;
@@ -21,8 +21,7 @@ public class ConfigData {
     public boolean legacyChatFormatting = true;
     public boolean parseLinksInChat = true;
     public boolean enableMarkdown = true;
-    public boolean formattingInPrivateMessages = true;
-    public boolean formattingInTeamMessages = true;
+    public boolean allowModdedDecorators = true;
     public String linkStyle = "<underline><c:#7878ff>${link}";
     public String spoilerStyle = "<gray>${spoiler}";
     public String spoilerSymbol = "▌";
@@ -31,8 +30,8 @@ public class ConfigData {
 
     private static HashMap<String, Boolean> getDefaultFormatting() {
         HashMap<String, Boolean> map = new HashMap<>();
-        for (String string : TextParser.getRegisteredSafeTags().keySet()) {
-            map.put(string, false);
+        for (var tag : TextParserV1.DEFAULT.getTags()) {
+            map.put(tag.name(), false);
         }
         map.put(StyledChatUtils.ITEM_TAG, true);
         map.put(StyledChatUtils.POS_TAG, true);
@@ -69,7 +68,7 @@ public class ConfigData {
         map.put("shears", "✂");
         map.put("bucket", "\uD83E\uDEA3");
         map.put("bell", "\uD83D\uDD14");
-        map.put(StyledChatUtils.ITEM_TAG, "[%player:equipment_slot/mainhand%]");
+        map.put(StyledChatUtils.ITEM_TAG, "[%player:equipment_slot mainhand%]");
         map.put(StyledChatUtils.POS_TAG, "%player:pos_x% %player:pos_y% %player:pos_z%");
 
         return map;
@@ -79,6 +78,7 @@ public class ConfigData {
         for (Map.Entry<String, Boolean> entry : getDefaultFormatting().entrySet()) {
             configData.defaultEnabledFormatting.putIfAbsent(entry.getKey(), entry.getValue());
         }
+        configData.defaultEnabledFormatting.putIfAbsent(StyledChatUtils.SPOILER_TAG, true);
 
         for (var entry : configData.permissionEmoticons) {
             if (entry.emotes != null) {
