@@ -297,7 +297,7 @@ public class ChatStyle {
         );
     }
 
-    public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, Object placeholderContext) {
+    public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, PlaceholderContext context) {
         if (this.privateMessageReceived == null) {
             return null;
         } else if (this.privateMessageReceived == StyledChatUtils.IGNORED_TEXT) {
@@ -306,8 +306,7 @@ public class ChatStyle {
 
         return Placeholders.parseText(
                 this.privateMessageReceived,
-                placeholderContext instanceof ServerPlayerEntity player ? PlaceholderContext.of(player) : PlaceholderContext.of((MinecraftServer) placeholderContext),
-
+                context,
                 Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
                 Map.of("sender", sender,
                         "receiver", receiver,

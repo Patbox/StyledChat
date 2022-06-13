@@ -245,13 +245,7 @@ public final class Config {
     }
 
     public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, ServerCommandSource context) {
-        Object placeholderContext;
-
-        try {
-            placeholderContext = context.getPlayer();
-        } catch (Exception e) {
-            placeholderContext = context.getServer();
-        }
+        var placeholderContext = PlaceholderContext.of(context);
 
         for (PermissionStyle entry : this.permissionStyle) {
             if (Permissions.check(context, entry.permission, entry.opLevel)) {

@@ -16,8 +16,11 @@ public class MessageArgumentTypeSignedMessageMixin {
     @Redirect(method = "method_44266", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_returnCached(MinecraftServer instance) {
         return (player, message) -> {
-            var cached = ((ExtPlayNetworkHandler) player.networkHandler).styledChat_getLastCached();
-            return CompletableFuture.completedFuture(cached != null ? cached : message);
+            if (player != null) {
+                var cached = ((ExtPlayNetworkHandler) player.networkHandler).styledChat_getLastCached();
+                return CompletableFuture.completedFuture(cached != null ? cached : message);
+            }
+            return CompletableFuture.completedFuture(message);
         };
     }
 }
