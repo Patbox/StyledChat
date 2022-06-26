@@ -40,8 +40,11 @@ public class StyledChatMod implements ModInitializer {
 
 		ServerLifecycleEvents.SERVER_STARTING.register((s) -> {
 			this.crabboardDetection();
-			ConfigManager.loadConfig();
 			server = s;
+		});
+
+		ServerLifecycleEvents.SERVER_STARTED.register((s) -> {
+			ConfigManager.loadConfig();
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPED.register((s) -> {
