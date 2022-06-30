@@ -31,7 +31,7 @@ public abstract class ServerPlayerEntityMixin {
 
     @Shadow @Final public MinecraftServer server;
 
-    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"))
+    @ModifyArg(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_replaceDeathMessage(Text text) {
         return ConfigManager.getConfig().getDeath((ServerPlayerEntity) (Object) this, text);
     }
@@ -55,7 +55,7 @@ public abstract class ServerPlayerEntityMixin {
         var override = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (override != null) {
             instance.sendPacket(new ChatMessageS2CPacket(message.signedContent(), message.unsignedContent(),
-                    this.getMessageTypeId(StyledChatMod.MESSAGE_TYPE), new MessageSender(sender.uuid(), override),
+                    this.getMessageTypeId(StyledChatMod.MESSAGE_TYPE), new MessageSender(sender.profileId(), override),
                     message.signature().timestamp(), message.signature().saltSignature()));
 
         } else {

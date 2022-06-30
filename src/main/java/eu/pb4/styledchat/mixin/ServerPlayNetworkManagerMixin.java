@@ -33,7 +33,7 @@ public class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHandler {
     @Shadow
     public ServerPlayerEntity player;
 
-    @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"))
+    @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_replaceDisconnectMessage(Text text) {
         return ConfigManager.getConfig().getLeft(this.player);
     }

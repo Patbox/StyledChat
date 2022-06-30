@@ -20,9 +20,7 @@ public class MessageTypeMixin {
     private static void styledChat_replace(Registry<MessageType> registry, CallbackInfoReturnable<RegistryEntry<MessageType>> cir) {
 
         BuiltinRegistries.add(registry, StyledChatMod.MESSAGE_TYPE,
-                new MessageType(Optional.of(new MessageType.DisplayRule(Optional.of(Decoration.ofChat("%s")))),
-                        Optional.empty(),
-                        Optional.of(MessageType.NarrationRule.of(Decoration.ofChat("%s"), MessageType.NarrationRule.Kind.CHAT)))
+                new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("%s"))
         );
     }
 }

@@ -44,7 +44,7 @@ public class PlayerManagerMixin {
         this.temporaryPlayer = null;
     }
 
-    @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"))
+    @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_updatePlayerNameAfterMessage(Text text) {
         if (this.temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
             return ConfigManager.getConfig().getJoinFirstTime(this.temporaryPlayer);
@@ -58,29 +58,15 @@ public class PlayerManagerMixin {
         }
     }
 
-    @Inject(method = "broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At("HEAD"), cancellable = true)
-    private void styledChat_excludeSendingOfHiddenMessages(Text message, RegistryKey<MessageType> typeKey, CallbackInfo ci) {
-        if (message == StyledChatUtils.IGNORED_TEXT) {
-            ci.cancel();
-        }
-    }
-
-    @Inject(method = "broadcast(Lnet/minecraft/text/Text;Ljava/util/function/Function;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At("HEAD"), cancellable = true)
-    private void styledChat_excludeSendingOfHiddenMessages2(Text message, Function<ServerPlayerEntity, Text> playerMessageFactory, RegistryKey<MessageType> typeKey, CallbackInfo ci) {
-        if (message == StyledChatUtils.IGNORED_TEXT) {
-            ci.cancel();
-        }
-    }
-
-    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;)V"), require = 0)
-    private void styledChat_fixServerLogs(MinecraftServer instance, MessageSender sender, Text ignore, SignedMessage message) {
+    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"), require = 0)
+    private void styledChat_fixServerLogs(MinecraftServer instance, MessageSender sender, Text ignore, RegistryKey<MessageType> typeKey, SignedMessage message) {
         var out = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (out != null) {
             if (out != StyledChatUtils.IGNORED_TEXT) {
                 this.server.sendMessage(out);
             }
         } else {
-            this.server.logChatMessage(sender, message.getContent());
+            this.server.logChatMessage(sender, message.getContent(), typeKey);
         }
     }
 }
