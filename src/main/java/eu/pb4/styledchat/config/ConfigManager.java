@@ -15,13 +15,27 @@ public class ConfigManager {
     public static final int VERSION = 2;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient().create();
 
-    private static Config CONFIG = null;
+    private static Config config = null;
+    private static ConfigData configData = null;
 
     public static Config getConfig() {
-        return CONFIG;
+        if (config == null) {
+            if (configData == null) {
+                loadConfig();
+            }
+
+            config = new Config(configData);
+        }
+
+        return config;
+    }
+
+    public static void clearCached() {
+        config = null;
     }
 
     public static boolean loadConfig() {
+        config = null;
         try {
             ConfigData config;
             File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "styled-chat.json");
@@ -44,14 +58,13 @@ public class ConfigManager {
             writer.write(GSON.toJson(config));
             writer.close();
 
-
-            CONFIG = new Config(config);
+            configData = config;
             return true;
         } catch(Exception exception) {
             StyledChatMod.LOGGER.error("Something went wrong while reading config! Make sure format is correct!");
             exception.printStackTrace();
-            if (CONFIG == null) {
-                CONFIG = new Config(new ConfigData());
+            if (configData == null) {
+                configData = new ConfigData();
             }
             return false;
         }

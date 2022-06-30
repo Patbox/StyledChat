@@ -16,6 +16,7 @@
     "PlayerEntityMixin",
     "PlayerManagerMixin",
     "SayCommandMixin",
+    "ServerMessageEventsMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkManagerMixin",
     "SignedMessageMixin",

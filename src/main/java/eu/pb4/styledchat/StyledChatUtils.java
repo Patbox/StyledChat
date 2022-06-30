@@ -48,11 +48,15 @@ public final class StyledChatUtils {
     public static final String POS_TAG = "pos";
     public static final String SPOILER_TAG = "spoiler";
 
+
     public static final TextParserV1.TagNodeBuilder SPOILER_TAG_HANDLER = (tag, data, input, handlers, endAt) -> {
         var out = TextParserV1.parseNodesWith(input, handlers, endAt);
 
         return new TextParserV1.TagNodeValue(new SpoilerNode(out.nodes()), out.length());
     };
+
+    public static final TextParserV1.TextTag SPOILER_TEXT_TAG = TextParserV1.TextTag.of(SPOILER_TAG, List.of("hide"), "styledchat", true, SPOILER_TAG_HANDLER);
+
 
     public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
     public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
@@ -69,7 +73,7 @@ public final class StyledChatUtils {
         Config config = ConfigManager.getConfig();
 
         for (var entry : TextParserV1.DEFAULT.getTags()) {
-            if (config.defaultFormattingCodes.getBoolean(entry)
+            if (config.defaultFormattingCodes.getBoolean(entry.name())
                     || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name(), entry.userSafe() ? 2 : 4)
                     || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + ".type." + entry.type(), entry.userSafe() ? 2 : 4)
             ) {
@@ -79,8 +83,7 @@ public final class StyledChatUtils {
 
         if (config.defaultFormattingCodes.getBoolean(SPOILER_TAG)
                 || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
-
-            parser.register(TextParserV1.TextTag.of(SPOILER_TAG, List.of("hide"), "styledchat", true, SPOILER_TAG_HANDLER));
+            parser.register(SPOILER_TEXT_TAG);
         }
 
         StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
@@ -345,5 +348,14 @@ public final class StyledChatUtils {
         } else {
             return formatFor(PlaceholderContext.of(source.getServer()), original);
         }
+    }
+
+    public static FilteredMessage<SignedMessage> toEventMessage(FilteredMessage<SignedMessage> message, PlaceholderContext context) {
+        var ext = (ExtSignedMessage) (Object) message.raw();
+
+        var baseInput = ext.styledChat_getArg("base_input");
+        var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
+
+        return FilteredMessage.permitted(SignedMessage.of(input));
     }
 }

@@ -37,7 +37,7 @@ dependencies {
 	modCompileOnly("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 	modLocalRuntime("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
-	modImplementation include("eu.pb4:placeholder-api:2.0.0-beta.5+1.19")
+	modImplementation include("eu.pb4:placeholder-api:2.0.0-beta.7+1.19")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 
 	//modRuntime "supercoder79:databreaker:0.2.7"

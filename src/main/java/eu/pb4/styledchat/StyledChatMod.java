@@ -1,6 +1,7 @@
 package eu.pb4.styledchat;
 
 import com.mojang.serialization.Lifecycle;
+import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.styledchat.command.Commands;
 import eu.pb4.styledchat.config.ConfigManager;
 import net.fabricmc.api.ModInitializer;
@@ -32,24 +33,17 @@ public class StyledChatMod implements ModInitializer {
 		this.crabboardDetection();
 		Commands.register();
 
-		BuiltinRegistries.add(BuiltinRegistries.MESSAGE_TYPE, MESSAGE_TYPE,
-				new MessageType(Optional.of(new MessageType.DisplayRule(Optional.of(Decoration.ofChat("%s")))),
-						Optional.empty(),
-						Optional.of(MessageType.NarrationRule.of(Decoration.ofChat("%s"), MessageType.NarrationRule.Kind.CHAT)))
-		);
-
 		ServerLifecycleEvents.SERVER_STARTING.register((s) -> {
 			this.crabboardDetection();
-			server = s;
-		});
-
-		ServerLifecycleEvents.SERVER_STARTED.register((s) -> {
 			ConfigManager.loadConfig();
+			server = s;
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPED.register((s) -> {
 			server = null;
 		});
+
+		Placeholders.registerChangeEvent((id, removed) -> ConfigManager.clearCached());
 	}
 
 	private void crabboardDetection() {

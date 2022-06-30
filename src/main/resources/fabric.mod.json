@@ -26,7 +26,7 @@
   ],
 
   "depends": {
-    "minecraft": ">=1.18-rc.1"
+    "minecraft": "1.19"
   },
   "custom": {
     "modmenu": {

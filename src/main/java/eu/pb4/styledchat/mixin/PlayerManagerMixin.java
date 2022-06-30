@@ -72,7 +72,7 @@ public class PlayerManagerMixin {
         }
     }
 
-    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;)V"))
+    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;)V"), require = 0)
     private void styledChat_fixServerLogs(MinecraftServer instance, MessageSender sender, Text ignore, SignedMessage message) {
         var out = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (out != null) {
