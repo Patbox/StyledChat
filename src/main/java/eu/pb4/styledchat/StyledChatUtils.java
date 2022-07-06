@@ -15,8 +15,10 @@ import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.class_7597;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.network.message.MessageDecorator;
+import net.minecraft.network.message.MessageSignature;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.scoreboard.Team;
@@ -29,10 +31,7 @@ import net.minecraft.text.TextContent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.RegistryKey;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -62,7 +61,7 @@ public final class StyledChatUtils {
     public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
     public static final Pattern EMOTE_PATTERN = Pattern.compile("[:](?<id>[^:]+)[:]");
     public static final Text EMPTY_TEXT = Text.empty();
-    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND);
+    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND);
 
     public static TextNode parseText(String input) {
         return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : null;
@@ -309,9 +308,21 @@ public final class StyledChatUtils {
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(source, ext.styledChat_getOriginal());
 
         return switch (type.getValue().getPath()) {
-            case "msg_command" -> {
+            case "msg_command_incoming" -> {
                 try {
                     yield config.getPrivateMessageReceived(
+                            source.getDisplayName(),
+                            ext.styledChat_getArg("targets"),
+                            input, source
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    yield Text.empty();
+                }
+            }
+            case "msg_command_outgoing" -> {
+                try {
+                    yield config.getPrivateMessageSent(
                             source.getDisplayName(),
                             ext.styledChat_getArg("targets"),
                             input, source
@@ -356,6 +367,38 @@ public final class StyledChatUtils {
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
 
-        return FilteredMessage.permitted(SignedMessage.of(input));
+        return FilteredMessage.permitted(SignedMessage.of(input, MessageSignature.none(message.raw().signature().sender())));
+    }
+
+    public static void sendAutocompliton(ServerPlayerEntity player) {
+        var config = ConfigManager.getConfig();
+        player.networkHandler.sendPacket(new class_7597(class_7597.class_7598.REMOVE, new ArrayList<>(config.allPossibleAutoCompletionKeys)));
+
+        var set = new HashSet<String>();
+
+        var source = player.getCommandSource();
+
+        var handler = StyledChatUtils.createParser(source);
+
+        if (config.configData.sendAutoCompletionForTags) {
+            for (var tag : handler.getTags()) {
+                set.add("<" + tag.name() + ">");
+
+                if (config.configData.sendAutoCompletionForTagAliases && tag.aliases() != null) {
+                    for (var a : tag.aliases()) {
+                        set.add("<" + a + ">");
+                    }
+                }
+            }
+        }
+        if (config.configData.sendAutoCompletionForEmotes) {
+            for (var emote : config.getEmotes(source).keySet()) {
+                set.add(":" + emote + ":");
+            }
+        }
+
+        if (!set.isEmpty()) {
+            player.networkHandler.sendPacket(new class_7597(class_7597.class_7598.ADD, new ArrayList<>(set)));
+        }
     }
 }

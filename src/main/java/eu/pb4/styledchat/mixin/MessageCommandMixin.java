@@ -3,6 +3,7 @@ package eu.pb4.styledchat.mixin;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
+import net.minecraft.network.message.MessageSender;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.command.MessageCommand;
@@ -10,6 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.filter.FilteredMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.registry.RegistryKey;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,7 +23,7 @@ import java.util.Collection;
 @Mixin(MessageCommand.class)
 public class MessageCommandMixin {
     @Inject(method = "method_44144", at = @At("HEAD"))
-    private static void styledChat_formatOgText(Collection<ServerPlayerEntity> collection, ServerCommandSource serverCommandSource, FilteredMessage<SignedMessage> decoratedMessage, CallbackInfo ci) {
+    private static void styledChat_formatOgText(Collection<ServerPlayerEntity> collection, MessageSender messageSender, ServerCommandSource serverCommandSource, FilteredMessage<SignedMessage> decoratedMessage, CallbackInfo ci) {
         var input = StyledChatUtils.formatFor(serverCommandSource, ((ExtSignedMessage) (Object) decoratedMessage.raw()).styledChat_getOriginal());
         ((ExtSignedMessage) (Object) decoratedMessage.raw()).styledChat_setArg("base_input", input);
 
@@ -35,8 +37,8 @@ public class MessageCommandMixin {
         }
     }
 
-    @Redirect(method = "method_44144", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/ServerCommandSource;sendFeedback(Lnet/minecraft/text/Text;Z)V"))
-    private static void styledChat_noopFeedback(ServerCommandSource instance, Text message, boolean broadcastToOps) {
+    @Redirect(method = "method_44144", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/ServerCommandSource;method_44749(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/network/message/SignedMessage;Lnet/minecraft/util/registry/RegistryKey;)V"))
+    private static void styledChat_noopFeedback(ServerCommandSource instance, MessageSender messageSender, SignedMessage signedMessage, RegistryKey<MessageType> registryKey) {
         // noop
     }
 
@@ -44,7 +46,7 @@ public class MessageCommandMixin {
     private static Object styledChat_formatText(FilteredMessage<SignedMessage> instance, ServerCommandSource source, ServerPlayerEntity receiver) {
         var x = instance.getFilterableFor(source, receiver);
         ((ExtSignedMessage) (Object) x).styledChat_setArg("targets", receiver.getDisplayName());
-        StyledChatUtils.modifyForSending(x, source, MessageType.MSG_COMMAND);
+        StyledChatUtils.modifyForSending(x, source, MessageType.MSG_COMMAND_INCOMING);
         return x;
     }
 }

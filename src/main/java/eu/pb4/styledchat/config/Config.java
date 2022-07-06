@@ -5,6 +5,7 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.TextParserUtils;
 import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.placeholders.api.parsers.TextParserV1;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
@@ -15,10 +16,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class Config {
     public final ConfigData configData;
@@ -31,6 +29,7 @@ public final class Config {
 
     private final Map<String, TextNode> emotes;
     private final List<PermissionEmotes> permissionEmotes;
+    public final Set<String> allPossibleAutoCompletionKeys;
 
     public Config(ConfigData data) {
         this.configData = data;
@@ -39,6 +38,8 @@ public final class Config {
         this.permissionStyle = new ArrayList<>();
         this.linkStyle = TextParserUtils.formatNodes(data.linkStyle);
         this.spoilerStyle = TextParserUtils.formatNodes(data.spoilerStyle);
+
+        this.allPossibleAutoCompletionKeys = new HashSet<>();
 
         for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
             this.permissionStyle.add(new PermissionStyle(entry.permission, entry.opLevel, new ChatStyle(entry.style)));
@@ -50,6 +51,7 @@ public final class Config {
 
         for (var entry : data.emoticons.entrySet()) {
             this.emotes.put(entry.getKey(), StyledChatUtils.parseText(entry.getValue()));
+            this.allPossibleAutoCompletionKeys.add(":" + entry.getKey() + ":");
         }
 
         this.permissionEmotes = new ArrayList<>();
@@ -58,12 +60,22 @@ public final class Config {
 
             for (var emote : entry.emoticons.entrySet()) {
                 emotes.emotes().put(emote.getKey(), StyledChatUtils.parseText(emote.getValue()));
+                this.allPossibleAutoCompletionKeys.add(":" + emote.getKey() + ":");
             }
             this.permissionEmotes.add(emotes);
         }
 
 
         this.defaultFormattingCodes = new Object2BooleanArrayMap<>(this.configData.defaultEnabledFormatting);
+
+        for (var tag : TextParserV1.DEFAULT.getTags()) {
+            this.allPossibleAutoCompletionKeys.add("<" + tag.name() + ">");
+            if (tag.aliases() != null) {
+                for (var a : tag.aliases()) {
+                    this.allPossibleAutoCompletionKeys.add("<" + a + ">");
+                }
+            }
+        }
     }
 
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {

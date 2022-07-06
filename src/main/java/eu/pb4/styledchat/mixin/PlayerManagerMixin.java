@@ -3,6 +3,7 @@ package eu.pb4.styledchat.mixin;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
+import net.minecraft.class_7597;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageSender;
 import net.minecraft.network.message.MessageType;
@@ -24,38 +25,43 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.UUID;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
 
     @Shadow @Final private MinecraftServer server;
-    @Unique private ServerPlayerEntity temporaryPlayer = null;
+    @Unique private ServerPlayerEntity styledChat_temporaryPlayer = null;
 
     @Inject(method = "onPlayerConnect", at = @At(value = "HEAD"))
     private void styledChat_storePlayer(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        this.temporaryPlayer = player;
+        this.styledChat_temporaryPlayer = player;
     }
 
     @Inject(method = "onPlayerConnect", at = @At("RETURN"))
     private void styledChat_removeStoredPlayer(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        this.temporaryPlayer = null;
+        this.styledChat_temporaryPlayer = null;
     }
 
     @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_updatePlayerNameAfterMessage(Text text) {
-        if (this.temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
-            return ConfigManager.getConfig().getJoinFirstTime(this.temporaryPlayer);
+        if (this.styledChat_temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
+            return ConfigManager.getConfig().getJoinFirstTime(this.styledChat_temporaryPlayer);
         }
 
         Object[] args = ((TranslatableTextContent) text.getContent()).getArgs();
         if (args.length == 1) {
-            return ConfigManager.getConfig().getJoin(this.temporaryPlayer);
+            return ConfigManager.getConfig().getJoin(this.styledChat_temporaryPlayer);
         } else {
-            return ConfigManager.getConfig().getJoinRenamed(this.temporaryPlayer, (String) args[1]);
+            return ConfigManager.getConfig().getJoinRenamed(this.styledChat_temporaryPlayer, (String) args[1]);
         }
+    }
+
+    @Inject(method = "sendCommandTree(Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("HEAD"))
+    private void styledChat_sendTree(ServerPlayerEntity player, CallbackInfo ci) {
+        StyledChatUtils.sendAutocompliton(player);
     }
 
     @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"), require = 0)

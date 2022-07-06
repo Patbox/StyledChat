@@ -23,6 +23,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
+
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin {
@@ -54,7 +56,7 @@ public abstract class ServerPlayerEntityMixin {
     private void styledChat_hacky(ServerPlayNetworkHandler instance, Packet<?> packet, SignedMessage message, MessageSender sender, RegistryKey<MessageType> typeKey) {
         var override = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (override != null) {
-            instance.sendPacket(new ChatMessageS2CPacket(message.signedContent(), message.unsignedContent(),
+            instance.sendPacket(new ChatMessageS2CPacket(message.signedContent(), Optional.empty(),
                     this.getMessageTypeId(StyledChatMod.MESSAGE_TYPE), new MessageSender(sender.profileId(), override),
                     message.signature().timestamp(), message.signature().saltSignature()));
 
