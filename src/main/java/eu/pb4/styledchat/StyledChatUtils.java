@@ -15,12 +15,11 @@ import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.class_7597;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.network.message.MessageSignature;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
+import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.filter.FilteredMessage;
@@ -61,7 +60,7 @@ public final class StyledChatUtils {
     public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
     public static final Pattern EMOTE_PATTERN = Pattern.compile("[:](?<id>[^:]+)[:]");
     public static final Text EMPTY_TEXT = Text.empty();
-    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND);
+    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
 
     public static TextNode parseText(String input) {
         return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : null;
@@ -85,7 +84,7 @@ public final class StyledChatUtils {
             parser.register(SPOILER_TEXT_TAG);
         }
 
-        StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
+        //StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
 
         return parser;
     }
@@ -100,12 +99,21 @@ public final class StyledChatUtils {
         if (config.configData.enableMarkdown || config.configData.legacyChatFormatting) {
             input = legacyFormatMessage(input, parser.getTags().stream().map((x) -> x.name()).collect(Collectors.toSet()));
         }
-        input = StyledChatEvents.PRE_MESSAGE_CONTENT.invoker().onPreMessage(input, context);
-
+        if (StyledChatMod.USE_FABRIC_API) {
+            input = StyledChatEvents.PRE_MESSAGE_CONTENT.invoker().onPreMessage(input, context);
+        }
 
         var emotes = getEmotes(context);
+
+        var value = additionalParsing(new ParentNode(parser.parseNodes(new LiteralNode(input))));
+
+        if (StyledChatMod.USE_FABRIC_API) {
+            value = StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(value, context);
+        }
+
+
         var text = Placeholders.parseText(
-                StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(additionalParsing(new ParentNode(parser.parseNodes(new LiteralNode(input)))), context),
+                value,
                 context,
                 EMOTE_PATTERN,
                 (id) -> emotes.containsKey(id) ? ((ctx, arg) -> PlaceholderResult.value(Placeholders.parseText(emotes.get(id), ctx))) : null
@@ -200,7 +208,7 @@ public final class StyledChatUtils {
             return CompletableFuture.completedFuture(switch (context) {
                 case "msg" -> {
                     try {
-                        yield config.getPrivateMessageSent(
+                        yield config.getPrivateMessageReceived(
                                 source.getDisplayName(),
                                 ((EntitySelector) argumentGetter.apply("targets", EntitySelector.class)).getPlayers(source).get(0).getDisplayName(),
                                 input, source
@@ -212,7 +220,7 @@ public final class StyledChatUtils {
                 }
                 case "teammsg" -> {
                     try {
-                        yield config.getTeamChatSent(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
+                        yield config.getTeamChatReceived(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                                 source.getDisplayName(),
                                 input, source
                         );
@@ -292,12 +300,16 @@ public final class StyledChatUtils {
         ((ExtSignedMessage) (Object) message.raw()).styledChat_setArg("override", StyledChatUtils.formatMessage(message.raw(), source, type));
 
         if (message.raw() != message.filtered()) {
-            ((ExtSignedMessage) (Object) message.raw()).styledChat_setArg("override", StyledChatUtils.formatMessage(message.filtered(), source, type));
+            ((ExtSignedMessage) (Object) message.filtered()).styledChat_setArg("override", StyledChatUtils.formatMessage(message.filtered(), source, type));
         }
     }
 
     public static void modifyForSending(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
-        ((ExtSignedMessage) (Object) message).styledChat_setArg("override", StyledChatUtils.formatMessage(message, source, type));
+        try {
+            ((ExtSignedMessage) (Object) message).styledChat_setArg("override", StyledChatUtils.formatMessage(message, source, type));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Text formatMessage(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
@@ -332,7 +344,7 @@ public final class StyledChatUtils {
                     yield Text.empty();
                 }
             }
-            case "team_msg_command" -> {
+            case "team_msg_command_incoming" -> {
                 try {
                     yield config.getTeamChatReceived(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                             source.getDisplayName(),
@@ -343,6 +355,16 @@ public final class StyledChatUtils {
                 }
             }
 
+            case "team_msg_command_outgoing" -> {
+                try {
+                    yield config.getTeamChatSent(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
+                            source.getDisplayName(),
+                            input, source
+                    );
+                } catch (Exception e) {
+                    yield Text.literal("");
+                }
+            }
             case "say_command" -> config.getSayCommand(source, input);
 
             case "emote_command" -> config.getMeCommand(source, input);
@@ -367,12 +389,12 @@ public final class StyledChatUtils {
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
 
-        return FilteredMessage.permitted(SignedMessage.of(input, MessageSignature.none(message.raw().signature().sender())));
+        return FilteredMessage.permitted(SignedMessage.ofUnsigned(message.raw().createMetadata(), input));
     }
 
     public static void sendAutocompliton(ServerPlayerEntity player) {
         var config = ConfigManager.getConfig();
-        player.networkHandler.sendPacket(new class_7597(class_7597.class_7598.REMOVE, new ArrayList<>(config.allPossibleAutoCompletionKeys)));
+        player.networkHandler.sendPacket(new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(config.allPossibleAutoCompletionKeys)));
 
         var set = new HashSet<String>();
 
@@ -398,7 +420,7 @@ public final class StyledChatUtils {
         }
 
         if (!set.isEmpty()) {
-            player.networkHandler.sendPacket(new class_7597(class_7597.class_7598.ADD, new ArrayList<>(set)));
+            player.networkHandler.sendPacket(new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(set)));
         }
     }
 }

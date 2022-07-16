@@ -5,9 +5,7 @@ import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 
 public class StyledChatEvents {
     /**

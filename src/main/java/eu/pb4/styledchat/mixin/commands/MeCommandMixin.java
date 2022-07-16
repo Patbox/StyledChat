@@ -1,4 +1,4 @@
-package eu.pb4.styledchat.mixin;
+package eu.pb4.styledchat.mixin.commands;
 
 import eu.pb4.styledchat.StyledChatUtils;
 import net.minecraft.network.message.MessageType;

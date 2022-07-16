@@ -3,18 +3,16 @@ package eu.pb4.styledchat.mixin;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
-import net.minecraft.class_7597;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.message.MessageSender;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.filter.FilteredMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.registry.RegistryKey;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.function.Predicate;
 
 
 @Mixin(PlayerManager.class)
@@ -64,15 +63,15 @@ public class PlayerManagerMixin {
         StyledChatUtils.sendAutocompliton(player);
     }
 
-    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Function;Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/util/registry/RegistryKey;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/message/MessageSender;Lnet/minecraft/text/Text;Lnet/minecraft/util/registry/RegistryKey;)V"), require = 0)
-    private void styledChat_fixServerLogs(MinecraftServer instance, MessageSender sender, Text ignore, RegistryKey<MessageType> typeKey, SignedMessage message) {
-        var out = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
+    @Redirect(method = "broadcast(Lnet/minecraft/server/filter/FilteredMessage;Ljava/util/function/Predicate;Lnet/minecraft/network/message/MessageSourceProfile;Lnet/minecraft/network/message/MessageType$Parameters;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageType$Parameters;Ljava/lang/String;)V"), require = 0)
+    private void styledChat_fixServerLogs(MinecraftServer instance, Text text, MessageType.Parameters parameters, String string, FilteredMessage<SignedMessage> filteredMessage) {
+        var out = ((ExtSignedMessage) (Object) filteredMessage.raw()).styledChat_getArg("override");
         if (out != null) {
             if (out != StyledChatUtils.IGNORED_TEXT) {
                 this.server.sendMessage(out);
             }
         } else {
-            this.server.logChatMessage(sender, message.getContent(), typeKey);
+            this.server.logChatMessage(text, parameters, string);
         }
     }
 }

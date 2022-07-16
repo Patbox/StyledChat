@@ -14,6 +14,7 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+
 repositories {
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
@@ -34,8 +35,13 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	modCompileOnly("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
-	modLocalRuntime("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+	//modCompileOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	//modLocalRuntime("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+
+	modCompileOnly fabricApi.module("fabric-api-base", project.fabric_version)
+	modLocalRuntime fabricApi.module("fabric-api-base", project.fabric_version)
+
+	modCompileOnly fabricApi.module("fabric-message-api-v1", project.fabric_version)
 
 	modImplementation include("eu.pb4:placeholder-api:2.0.0-beta.7+1.19")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
@@ -43,6 +49,10 @@ dependencies {
 	//modRuntime "supercoder79:databreaker:0.2.7"
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
+}
+
+loom {
+	enableTransitiveAccessWideners = false
 }
 
 processResources {

@@ -9,18 +9,12 @@ import net.minecraft.util.registry.RegistryEntry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Optional;
 
 @Mixin(MessageType.class)
 public class MessageTypeMixin {
     @Inject(method = "initialize", at = @At("TAIL"))
     private static void styledChat_replace(Registry<MessageType> registry, CallbackInfoReturnable<RegistryEntry<MessageType>> cir) {
-
-        BuiltinRegistries.add(registry, StyledChatMod.MESSAGE_TYPE,
-                new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("%s"))
-        );
+        BuiltinRegistries.add(registry, StyledChatMod.MESSAGE_TYPE_ID, StyledChatMod.MESSAGE_TYPE);
     }
 }
