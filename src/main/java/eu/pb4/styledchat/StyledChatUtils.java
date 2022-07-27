@@ -15,10 +15,9 @@ import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.class_7649;
 import net.minecraft.command.EntitySelector;
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
+import net.minecraft.network.message.*;
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
@@ -296,13 +295,13 @@ public final class StyledChatUtils {
         return DECORABLE.contains(typeKey);
     }
 
-    public static void modifyForSending(FilteredMessage<SignedMessage> message, ServerCommandSource source, RegistryKey<MessageType> type) {
+    /*public static void modifyForSending(FilteredMessage<SignedMessage> message, ServerCommandSource source, RegistryKey<MessageType> type) {
         ((ExtSignedMessage) (Object) message.raw()).styledChat_setArg("override", StyledChatUtils.formatMessage(message.raw(), source, type));
 
         if (message.raw() != message.filtered()) {
             ((ExtSignedMessage) (Object) message.filtered()).styledChat_setArg("override", StyledChatUtils.formatMessage(message.filtered(), source, type));
         }
-    }
+    }*/
 
     public static void modifyForSending(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
         try {
@@ -317,7 +316,11 @@ public final class StyledChatUtils {
         var ext = (ExtSignedMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");
-        var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(source, ext.styledChat_getOriginal());
+
+        var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY
+                ? baseInput
+                : maybeFormatFor(source, ext.styledChat_getOriginal(), message.getContent());
+
 
         return switch (type.getValue().getPath()) {
             case "msg_command_incoming" -> {
@@ -375,6 +378,14 @@ public final class StyledChatUtils {
         };
     }
 
+    public static Text maybeFormatFor(ServerCommandSource source, String original, Text originalContent) {
+        if (source.isExecutedByPlayer() && ConfigManager.getConfig().configData.requireChatPreviewForFormatting) {
+            return originalContent;
+        }
+
+        return formatFor(source, original);
+    }
+
     public static Text formatFor(ServerCommandSource source, String original) {
         if (source.getEntity() instanceof ServerPlayerEntity player) {
             return formatFor(PlaceholderContext.of(player), original);
@@ -383,13 +394,16 @@ public final class StyledChatUtils {
         }
     }
 
-    public static FilteredMessage<SignedMessage> toEventMessage(FilteredMessage<SignedMessage> message, PlaceholderContext context) {
-        var ext = (ExtSignedMessage) (Object) message.raw();
+    public static SignedMessage toEventMessage(SignedMessage message, PlaceholderContext context) {
+        var ext = (ExtSignedMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
 
-        return FilteredMessage.permitted(SignedMessage.ofUnsigned(message.raw().createMetadata(), input));
+        MessageMetadata messageMetadata = message.createMetadata();
+        MessageBody messageBody = new MessageBody(new DecoratedContents(ext.styledChat_getOriginal(), input), messageMetadata.timestamp(), messageMetadata.salt(), LastSeenMessageList.EMPTY);
+        MessageHeader messageHeader = new MessageHeader(null, messageMetadata.sender());
+        return new SignedMessage(messageHeader, MessageSignatureData.EMPTY, messageBody, Optional.empty(), null);
     }
 
     public static void sendAutocompliton(ServerPlayerEntity player) {

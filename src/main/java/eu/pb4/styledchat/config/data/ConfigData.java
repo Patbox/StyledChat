@@ -23,6 +23,7 @@ public class ConfigData {
     public boolean enableMarkdown = true;
     public boolean allowModdedDecorators = true;
     public boolean sendFullMessageInChatPreview = false;
+    public boolean requireChatPreviewForFormatting = false;
     public boolean sendAutoCompletionForTags = false;
     public boolean sendAutoCompletionForTagAliases = false;
     public boolean sendAutoCompletionForEmotes = true;

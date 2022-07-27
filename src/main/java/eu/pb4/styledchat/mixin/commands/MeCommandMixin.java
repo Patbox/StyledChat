@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MeCommand.class)
 public class MeCommandMixin {
     @Inject(method = "method_43645", at = @At("HEAD"))
-    private static void styledChat_formatText(PlayerManager playerManager, ServerCommandSource serverCommandSource, FilteredMessage<SignedMessage> decoratedMessage, CallbackInfo ci) {
-        StyledChatUtils.modifyForSending(decoratedMessage, serverCommandSource, MessageType.EMOTE_COMMAND);
+    private static void styledChat_formatText(PlayerManager playerManager, ServerCommandSource serverCommandSource, SignedMessage signedMessage, CallbackInfo ci) {
+        StyledChatUtils.modifyForSending(signedMessage, serverCommandSource, MessageType.EMOTE_COMMAND);
     }
 }

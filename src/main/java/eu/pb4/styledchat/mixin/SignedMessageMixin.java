@@ -41,7 +41,7 @@ public class SignedMessageMixin implements ExtSignedMessage {
 
     @Override
     public String styledChat_getOriginal() {
-        return this.signedBody.content().plain().getString();
+        return this.signedBody.content().plain();
     }
 
     @Override

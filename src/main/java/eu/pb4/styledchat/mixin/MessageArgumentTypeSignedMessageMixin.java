@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 @Mixin(MessageArgumentType.SignedMessage.class)
 public class MessageArgumentTypeSignedMessageMixin {
-    @Redirect(method = "decorate(Lnet/minecraft/server/command/ServerCommandSource;Lnet/minecraft/server/filter/FilteredMessage;Lnet/minecraft/server/filter/FilteredMessage;)Ljava/util/concurrent/CompletableFuture;", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
+    @Redirect(method = "method_45069", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_returnCached(MinecraftServer instance) {
         return (player, message) -> {
             if (player != null) {

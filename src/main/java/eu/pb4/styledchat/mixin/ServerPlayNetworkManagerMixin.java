@@ -23,8 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHandler {
@@ -35,9 +33,6 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
     @Shadow
     public ServerPlayerEntity player;
 
-    @Shadow @Final private MinecraftServer server;
-
-    @Shadow protected abstract void handleDecoratedMessage(FilteredMessage<SignedMessage> message);
 
     @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_replaceDisconnectMessage(Text text) {
@@ -46,7 +41,8 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Redirect(method = "decorateChat", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_replaceDecorator2(MinecraftServer instance) {
-        return ConfigManager.getConfig().configData.sendFullMessageInChatPreview ? StyledChatUtils.getChatDecorator() : StyledChatUtils.getRawDecorator();
+        var config = ConfigManager.getConfig().configData;
+        return config.sendFullMessageInChatPreview && !config.requireChatPreviewForFormatting ? StyledChatUtils.getChatDecorator() : StyledChatUtils.getRawDecorator();
     }
 
     @Inject(method = "sendChatPreviewPacket", at = @At("HEAD"))
@@ -55,32 +51,18 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
     }
 
     @Inject(method = "handleDecoratedMessage", at = @At("HEAD"))
-    private void styledChat_setFormattedMessage(FilteredMessage<SignedMessage> message, CallbackInfo ci) {
-        StyledChatUtils.modifyForSending(message, this.player.getCommandSource(), MessageType.CHAT);
+    private void styledChat_setFormattedMessage(SignedMessage signedMessage, CallbackInfo ci) {
+        StyledChatUtils.modifyForSending(signedMessage, this.player.getCommandSource(), MessageType.CHAT);
     }
 
-    /*@Redirect(method = "handleMessage", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
-    private CompletableFuture<FilteredMessage<SignedMessage>> styledChat_replaceFormatting(CompletableFuture<FilteredMessage<SignedMessage>> instance, Consumer<FilteredMessage<SignedMessage>> action, Executor executor, ChatMessageC2SPacket packet, FilteredMessage<String> message) {
-        return instance.thenApplyAsync((x) -> {
-            ((ExtSignedMessage) (Object) x.raw()).styledChat_setOriginal(message.raw());
-
-            if (x.raw() != x.filtered()) {
-                ((ExtSignedMessage) (Object) x.filtered()).styledChat_setOriginal(message.filtered());
-            }
-            action.accept(x);
-            return null;
-            }, executor);
-    }*/
-
-
-    @Redirect(method = "handleMessage", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
+    @Redirect(method = "method_45065", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_replaceDecorator(MinecraftServer instance) {
         return (player, message) -> CompletableFuture.completedFuture(this.styledChat_lastCached != null ? this.styledChat_lastCached : message);
     }
 
-    @Inject(method = "handleMessage", at = @At("HEAD"))
-    private void styledChat_removeCachedIfNotPreviewed(ChatMessageC2SPacket packet, FilteredMessage<String> filteredMessage, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
-       if (!packet.signedPreview()) {
+    @Inject(method = "method_45065", at = @At("HEAD"))
+    private void styledChat_removeCachedIfNotPreviewed(SignedMessage signedMessage, CallbackInfoReturnable<CompletableFuture> cir) {
+       if (!signedMessage.getSignedContent().isDecorated()) {
            this.styledChat_lastCached = null;
        }
     }

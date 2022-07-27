@@ -20,7 +20,7 @@ public class MinecraftServerMixin {
 
     @Inject(method = "shutdown", at = @At("TAIL"))
     private void styledChat_registerStopping(CallbackInfo ci) {
-        StyledChatMod.serverStarting((MinecraftServer) (Object) this);
+        StyledChatMod.serverStopped((MinecraftServer) (Object) this);
     }
 
     @Inject(method = "sendMessage", at = @At("HEAD"), cancellable = true)

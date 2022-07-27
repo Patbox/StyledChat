@@ -53,6 +53,9 @@ dependencies {
 
 loom {
 	enableTransitiveAccessWideners = false
+	interfaceInjection {
+		enableDependencyInterfaceInjection = false
+	}
 }
 
 processResources {

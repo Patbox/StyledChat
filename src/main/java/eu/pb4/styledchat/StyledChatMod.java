@@ -5,6 +5,7 @@ import eu.pb4.styledchat.config.ConfigManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.message.MessageType;
+import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Decoration;
 import net.minecraft.util.Identifier;
@@ -28,7 +29,6 @@ public class StyledChatMod implements ModInitializer {
 	public void onInitialize() {
 		this.crabboardDetection();
 		Placeholders.registerChangeEvent((id, removed) -> ConfigManager.clearCached());
-
 	}
 
 
