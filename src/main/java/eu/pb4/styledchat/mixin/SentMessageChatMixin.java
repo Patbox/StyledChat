@@ -6,8 +6,6 @@ import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SentMessage;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Final;
@@ -21,7 +19,7 @@ public abstract class SentMessageChatMixin implements ExtSentMessage {
 
     @Shadow @Final private SignedMessage message;
 
-    @Redirect(method = "method_45095", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageType$Parameters;toSerialized(Lnet/minecraft/util/registry/DynamicRegistryManager;)Lnet/minecraft/network/message/MessageType$Serialized;"))
+    @Redirect(method = "send", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageType$Parameters;toSerialized(Lnet/minecraft/util/registry/DynamicRegistryManager;)Lnet/minecraft/network/message/MessageType$Serialized;"))
     private MessageType.Serialized styledChat_replaceSerialized(MessageType.Parameters instance, DynamicRegistryManager registryManager) {
         var override = ((ExtSignedMessage) (Object) this.message).styledChat_getArg("override");
         if (override != null) {

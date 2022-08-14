@@ -18,7 +18,7 @@
     "commands.SayCommandMixin",
     "SentMessageChatMixin",
     "SentMessageProfilelessMixin",
-    "ServerMessageEventsMixin",
+    "compat.ServerMessageEventsMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkManagerMixin",
     "SignedMessageMixin",

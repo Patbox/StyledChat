@@ -46,6 +46,9 @@ dependencies {
 	modImplementation include("eu.pb4:placeholder-api:2.0.0-beta.7+1.19")
 	modImplementation include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")
 
+	modCompileOnly("fr.catcore:server-translations-api:1.4.16+1.19")
+	//modLocalRuntime("fr.catcore:server-translations-api:1.4.16+1.19")
+
 	//modRuntime "supercoder79:databreaker:0.2.7"
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.

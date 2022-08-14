@@ -1,4 +1,4 @@
-package eu.pb4.styledchat.mixin;
+package eu.pb4.styledchat.mixin.compat;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.styledchat.StyledChatUtils;

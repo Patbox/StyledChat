@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class SentMessageProfilelessMixin implements ExtSentMessage {
     @Shadow @Final private SignedMessage message;
 
-    @Redirect(method = "method_45095", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageType$Parameters;toSerialized(Lnet/minecraft/util/registry/DynamicRegistryManager;)Lnet/minecraft/network/message/MessageType$Serialized;"))
+    @Redirect(method = "send", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageType$Parameters;toSerialized(Lnet/minecraft/util/registry/DynamicRegistryManager;)Lnet/minecraft/network/message/MessageType$Serialized;"))
     private MessageType.Serialized styledChat_replaceSerialized(MessageType.Parameters instance, DynamicRegistryManager registryManager) {
         var override = ((ExtSignedMessage) (Object) this.message).styledChat_getArg("override");
         if (override != null) {

@@ -3,13 +3,11 @@ package eu.pb4.styledchat.mixin;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
-import eu.pb4.styledchat.ducks.ExtSignedMessage;
+import eu.pb4.styledchat.other.ServerTranslationUtils;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.filter.FilteredMessage;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
@@ -47,7 +45,7 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Inject(method = "sendChatPreviewPacket", at = @At("HEAD"))
     private void styledChat_store(int queryId, Text preview, CallbackInfo ci) {
-        this.styledChat_lastCached = preview;
+        this.styledChat_lastCached = ServerTranslationUtils.translate(this.player, preview);
     }
 
     @Inject(method = "handleDecoratedMessage", at = @At("HEAD"))
