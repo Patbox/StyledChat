@@ -1,14 +1,13 @@
 package eu.pb4.styledchat.mixin;
 
+import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.StyledChatUtils;
-import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.filter.FilteredMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
@@ -23,16 +22,15 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.function.Predicate;
-
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
 
-    @Shadow @Final private MinecraftServer server;
-    @Unique private ServerPlayerEntity styledChat_temporaryPlayer = null;
+    @Shadow
+    @Final
+    private MinecraftServer server;
+    @Unique
+    private ServerPlayerEntity styledChat_temporaryPlayer = null;
 
     @Inject(method = "onPlayerConnect", at = @At(value = "HEAD"))
     private void styledChat_storePlayer(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
@@ -47,14 +45,14 @@ public class PlayerManagerMixin {
     @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_updatePlayerNameAfterMessage(Text text) {
         if (this.styledChat_temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
-            return ConfigManager.getConfig().getJoinFirstTime(this.styledChat_temporaryPlayer);
+            return StyledChatStyles.getJoinFirstTime(this.styledChat_temporaryPlayer);
         }
 
         Object[] args = ((TranslatableTextContent) text.getContent()).getArgs();
         if (args.length == 1) {
-            return ConfigManager.getConfig().getJoin(this.styledChat_temporaryPlayer);
+            return StyledChatStyles.getJoin(this.styledChat_temporaryPlayer);
         } else {
-            return ConfigManager.getConfig().getJoinRenamed(this.styledChat_temporaryPlayer, (String) args[1]);
+            return StyledChatStyles.getJoinRenamed(this.styledChat_temporaryPlayer, (String) args[1]);
         }
     }
 

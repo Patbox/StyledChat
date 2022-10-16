@@ -1,11 +1,12 @@
 package eu.pb4.styledchat;
 
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.styledchat.config.ConfigManager;
+import eu.pb4.styledchat.other.GenericModInfo;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.message.MessageType;
-import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Decoration;
 import net.minecraft.util.Identifier;
@@ -28,6 +29,8 @@ public class StyledChatMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		this.crabboardDetection();
+		GenericModInfo.build(FabricLoader.getInstance().getModContainer("styledchat").get());
+		PlayerDataApi.register(StyledChatUtils.PLAYER_DATA);
 		Placeholders.registerChangeEvent((id, removed) -> ConfigManager.clearCached());
 	}
 

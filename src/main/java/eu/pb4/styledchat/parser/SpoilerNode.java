@@ -1,6 +1,7 @@
 package eu.pb4.styledchat.parser;
 
 import eu.pb4.placeholders.api.ParserContext;
+import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.parent.ParentNode;
@@ -20,9 +21,10 @@ public class SpoilerNode extends ParentNode {
     @Override
     protected Text applyFormatting(MutableText out, ParserContext context) {
         var config = ConfigManager.getConfig();
-        var obj = ((MutableText) Placeholders.parseText(config.spoilerStyle,
+        var ctx = context.get(PlaceholderContext.KEY);
+        var obj = ((MutableText) Placeholders.parseText(config.getSpoilerStyle(ctx),
                 Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("spoiler", Text.literal(config.configData.spoilerSymbol.repeat(out.getString().length())))
+                Map.of("spoiler", Text.literal(config.getSpoilerSymbole(ctx).repeat(out.getString().length())))
         ));
 
         return obj.setStyle(obj.getStyle().withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, out)));

@@ -1,7 +1,8 @@
 package eu.pb4.styledchat.config.data;
 
-import eu.pb4.styledchat.config.ConfigManager;
+import com.google.gson.annotations.SerializedName;
 
 public class VersionConfigData {
-    public int CONFIG_VERSION_DONT_TOUCH_THIS = ConfigManager.VERSION;
+    @SerializedName("CONFIG_VERSION_DONT_TOUCH_THIS")
+    public int version;
 }

@@ -2,15 +2,13 @@ package eu.pb4.styledchat.config;
 
 
 import eu.pb4.placeholders.api.PlaceholderContext;
-import eu.pb4.placeholders.api.Placeholders;
-import eu.pb4.placeholders.api.TextParserUtils;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
-import eu.pb4.styledchat.StyledChatUtils;
+import eu.pb4.predicate.api.BuiltinPredicates;
+import eu.pb4.predicate.api.PredicateContext;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
-import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
-import me.lucko.fabric.api.permissions.v0.Permissions;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,14 +19,7 @@ import java.util.*;
 public final class Config {
     public final ConfigData configData;
     private final ChatStyle defaultStyle;
-    private final List<PermissionStyle> permissionStyle;
-    public final Object2BooleanArrayMap<String> defaultFormattingCodes;
-    public final TextNode linkStyle;
-    public final TextNode spoilerStyle;
-    private final TextNode petDeathMessage;
-
-    private final Map<String, TextNode> emotes;
-    private final List<PermissionEmotes> permissionEmotes;
+    private final List<ChatStyle> permissionStyle;
     public final Set<String> allPossibleAutoCompletionKeys;
 
     public Config(ConfigData data) {
@@ -36,38 +27,23 @@ public final class Config {
         this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.DEFAULT));
 
         this.permissionStyle = new ArrayList<>();
-        this.linkStyle = TextParserUtils.formatNodes(data.linkStyle);
-        this.spoilerStyle = TextParserUtils.formatNodes(data.spoilerStyle);
 
         this.allPossibleAutoCompletionKeys = new HashSet<>();
 
-        for (ConfigData.PermissionPriorityStyle entry : data.permissionStyles) {
-            this.permissionStyle.add(new PermissionStyle(entry.permission, entry.opLevel, new ChatStyle(entry.style)));
-        }
-
-        this.petDeathMessage = StyledChatUtils.parseText(configData.petDeathMessage);
-
-        this.emotes = new HashMap<>();
-
-        for (var entry : data.emoticons.entrySet()) {
-            this.emotes.put(entry.getKey(), StyledChatUtils.parseText(entry.getValue()));
-            this.allPossibleAutoCompletionKeys.add(":" + entry.getKey() + ":");
-        }
-
-        this.permissionEmotes = new ArrayList<>();
-        for (var entry : data.permissionEmoticons) {
-            var emotes = PermissionEmotes.of(entry.permission, entry.opLevel);
-
-            for (var emote : entry.emoticons.entrySet()) {
-                emotes.emotes().put(emote.getKey(), StyledChatUtils.parseText(emote.getValue()));
-                this.allPossibleAutoCompletionKeys.add(":" + emote.getKey() + ":");
+        for (var entry : data.permissionStyles) {
+            if (entry.require == null) {
+                entry.require = BuiltinPredicates.operatorLevel(4);
             }
-            this.permissionEmotes.add(emotes);
+
+            this.permissionStyle.add(new ChatStyle(entry));
+
+            for (var key : entry.emoticons.keySet()) {
+                this.allPossibleAutoCompletionKeys.add(":" + key + ":");
+            }
+
         }
-
-
-        this.defaultFormattingCodes = new Object2BooleanArrayMap<>(this.configData.defaultEnabledFormatting);
-
+        
+        
         for (var tag : TextParserV1.DEFAULT.getTags()) {
             this.allPossibleAutoCompletionKeys.add("<" + tag.name() + ">");
             if (tag.aliases() != null) {
@@ -79,10 +55,10 @@ public final class Config {
     }
 
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getDisplayName(player, vanillaDisplayName);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getDisplayName(player, vanillaDisplayName);
                 if (text != null) {
                     return text;
                 }
@@ -92,10 +68,10 @@ public final class Config {
     }
 
     public Text getChat(ServerPlayerEntity player, Text message) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getChat(player, message);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getChat(player, message);
                 if (text != null) {
                     return text;
                 }
@@ -105,10 +81,10 @@ public final class Config {
     }
 
     public Text getJoin(ServerPlayerEntity player) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getJoin(player);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getJoin(player);
                 if (text != null) {
                     return text;
                 }
@@ -118,10 +94,10 @@ public final class Config {
     }
 
     public Text getJoinFirstTime(ServerPlayerEntity player) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getJoinFirstTime(player);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getJoinFirstTime(player);
                 if (text != null) {
                     return text;
                 }
@@ -135,10 +111,10 @@ public final class Config {
     }
 
     public Text getJoinRenamed(ServerPlayerEntity player, String oldName) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getJoinRenamed(player, oldName);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getJoinRenamed(player, oldName);
                 if (text != null) {
                     return text;
                 }
@@ -148,10 +124,10 @@ public final class Config {
     }
 
     public Text getLeft(ServerPlayerEntity player) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getLeft(player);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getLeft(player);
                 if (text != null) {
                     return text;
                 }
@@ -161,10 +137,10 @@ public final class Config {
     }
 
     public Text getDeath(ServerPlayerEntity player, Text vanillaMessage) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getDeath(player, vanillaMessage);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getDeath(player, vanillaMessage);
                 if (text != null) {
                     return text;
                 }
@@ -174,10 +150,10 @@ public final class Config {
     }
 
     public Text getAdvancementTask(ServerPlayerEntity player, Text advancement) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getAdvancementTask(player, advancement);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getAdvancementTask(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -187,10 +163,10 @@ public final class Config {
     }
 
     public Text getAdvancementGoal(ServerPlayerEntity player, Text advancement) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getAdvancementGoal(player, advancement);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getAdvancementGoal(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -200,10 +176,10 @@ public final class Config {
     }
 
     public Text getAdvancementChallenge(ServerPlayerEntity player, Text advancement) {
-        ServerCommandSource source = player.getCommandSource();
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getAdvancementChallenge(player, advancement);
+        var context = PredicateContext.of(player);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getAdvancementChallenge(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -213,9 +189,10 @@ public final class Config {
     }
 
     public Text getSayCommand(ServerCommandSource source, Text message) {
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getSayCommand(source, message);
+        var context = PredicateContext.of(source);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getSayCommand(source, message);
                 if (text != null) {
                     return text;
                 }
@@ -225,9 +202,10 @@ public final class Config {
     }
 
     public Text getMeCommand(ServerCommandSource source, Text message) {
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getMeCommand(source, message);
+        var context = PredicateContext.of(source);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                Text text = entry.getMeCommand(source, message);
                 if (text != null) {
                     return text;
                 }
@@ -237,17 +215,12 @@ public final class Config {
     }
 
     public Text getPrivateMessageSent(Text sender, Text receiver, Text message, ServerCommandSource context) {
-        Object placeholderContext;
+        var placeholderContext = PlaceholderContext.of(context);
 
-        try {
-            placeholderContext = context.getPlayer();
-        } catch (Exception e) {
-            placeholderContext = context.getServer();
-        }
-
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(context, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getPrivateMessageSent(sender, receiver, message, placeholderContext);
+        var context2 = PredicateContext.of(context);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                Text text = entry.getPrivateMessageSent(sender, receiver, message, placeholderContext);
                 if (text != null) {
                     return text;
                 }
@@ -259,9 +232,10 @@ public final class Config {
     public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, ServerCommandSource context) {
         var placeholderContext = PlaceholderContext.of(context);
 
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(context, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
+        var context2 = PredicateContext.of(context);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                Text text = entry.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
                 if (text != null) {
                     return text;
                 }
@@ -271,77 +245,114 @@ public final class Config {
     }
 
     public Text getTeamChatSent(Text team, Text displayName, Text message, ServerCommandSource context) {
-        Object placeholderContext;
-
-        try {
-            placeholderContext = context.getPlayer();
-        } catch (Exception e) {
-            placeholderContext = context.getServer();
-        }
-
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(context, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getTeamChatSent(team, displayName, message, placeholderContext);
+        var context2 = PredicateContext.of(context);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                Text text = entry.getTeamChatSent(team, displayName, message, context);
                 if (text != null) {
                     return text;
                 }
             }
         }
-        return this.defaultStyle.getTeamChatSent(team, displayName, message, placeholderContext);
+        return this.defaultStyle.getTeamChatSent(team, displayName, message, context);
     }
 
     public Text getTeamChatReceived(Text team, Text displayName, Text message, ServerCommandSource context) {
-        Object placeholderContext;
-
-        try {
-            placeholderContext = context.getPlayer();
-        } catch (Exception e) {
-            placeholderContext = context.getServer();
-        }
-
-        for (PermissionStyle entry : this.permissionStyle) {
-            if (Permissions.check(context, entry.permission, entry.opLevel)) {
-                Text text = entry.style.getTeamChatReceived(team, displayName, message, placeholderContext);
+        var context2 = PredicateContext.of(context);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                Text text = entry.getTeamChatReceived(team, displayName, message, context);
                 if (text != null) {
                     return text;
                 }
             }
         }
-        return this.defaultStyle.getTeamChatReceived(team, displayName, message, placeholderContext);
+        return this.defaultStyle.getTeamChatReceived(team, displayName, message, context);
+    }
+
+    public TextNode getSpoilerStyle(PlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.source());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = entry.getSpoilerStyle();
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getSpoilerStyle();
+    }
+
+    public String getSpoilerSymbole(PlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.source());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = entry.getSpoilerSymbol();
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getSpoilerSymbol();
+    }
+
+    public TextNode getLinkStyle(PlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.source());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = entry.getLink();
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getLink();
     }
 
     public Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
-        if (this.petDeathMessage == null) {
-            return null;
+        var context2 = PredicateContext.of(entity);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = this.defaultStyle.getPetDeath(entity, vanillaMessage);
+                if (text != null) {
+                    return text;
+                }
+            }
         }
-
-        return Placeholders.parseText(
-                this.petDeathMessage,
-                PlaceholderContext.of(entity),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("pet", entity.getDisplayName(),
-                        "default_message", vanillaMessage)
-        );
+        return this.defaultStyle.getPetDeath(entity, vanillaMessage);
     }
 
     public Map<String, TextNode> getEmotes(ServerCommandSource source) {
-        var base = new HashMap<>(this.emotes);
+        var base = new HashMap<>(this.defaultStyle.emoticons);
+        var context = PredicateContext.of(source);
 
-        for (var entry : this.permissionEmotes) {
-            if (Permissions.check(source, entry.permission, entry.opLevel)) {
-                base.putAll(entry.emotes());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                for (var emoticon : entry.emoticons.entrySet()) {
+                    if (!base.containsKey(emoticon.getKey())) {
+                        base.put(emoticon.getKey(), emoticon.getValue());
+                    }
+                }
             }
         }
 
         return base;
     }
 
-    private record PermissionStyle(String permission, int opLevel, ChatStyle style) {
-    }
+    public Object2BooleanOpenHashMap<String> getAllowedFormatting(ServerCommandSource source) {
+        var base = new Object2BooleanOpenHashMap<>(this.defaultStyle.formatting);
+        var context = PredicateContext.of(source);
 
-    private record PermissionEmotes(String permission, int opLevel, Map<String, TextNode> emotes) {
-        public static PermissionEmotes of(String permission, int opLevel) {
-            return new PermissionEmotes(permission, opLevel, new HashMap<>());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context).success()) {
+                for (var formatting : entry.formatting.object2BooleanEntrySet()) {
+                    if (!base.containsKey(formatting.getKey())) {
+                        base.put(formatting.getKey(), formatting.getBooleanValue());
+                    }
+                }
+            }
         }
+
+        return base;
     }
 }

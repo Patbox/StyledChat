@@ -4,14 +4,24 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.TextParserUtils;
+import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.parent.ClickActionNode;
 import eu.pb4.placeholders.api.node.parent.ParentNode;
 import eu.pb4.placeholders.api.node.parent.ParentTextNode;
+import eu.pb4.placeholders.api.parsers.LegacyFormattingParser;
+import eu.pb4.placeholders.api.parsers.MarkdownLiteParserV1;
+import eu.pb4.placeholders.api.parsers.NodeParser;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
+import eu.pb4.playerdata.api.PlayerDataApi;
+import eu.pb4.playerdata.api.storage.JsonDataStorage;
+import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.Config;
 import eu.pb4.styledchat.config.ConfigManager;
+import eu.pb4.styledchat.config.data.ChatStyleData;
+import eu.pb4.styledchat.config.data.VersionedChatStyleData;
+import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -26,23 +36,24 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextContent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.RegistryKey;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public final class StyledChatUtils {
     public static final Text IGNORED_TEXT = Text.empty();
 
     public static final Pattern URL_REGEX = Pattern.compile("(https?:\\/\\/[-a-zA-Z0-9@:%._\\+~#=]+\\.[^ ]+)");
 
-    public static final String ITEM_TAG = "item";
-    public static final String POS_TAG = "pos";
+    public static final String ITEM_KEY = "item";
+    public static final String POS_KEY = "pos";
     public static final String SPOILER_TAG = "spoiler";
 
+    public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class, ConfigManager.GSON);
 
     public static final TextParserV1.TagNodeBuilder SPOILER_TAG_HANDLER = (tag, data, input, handlers, endAt) -> {
         var out = TextParserV1.parseNodesWith(input, handlers, endAt);
@@ -60,15 +71,70 @@ public final class StyledChatUtils {
     private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
 
     public static TextNode parseText(String input) {
-        return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : null;
+        return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : EmptyNode.INSTANCE;
     }
 
-    public static TextParserV1 createParser(ServerCommandSource source) {
+    public static NodeParser createParser(ServerCommandSource source) {
+        var config = ConfigManager.getConfig();
+        var list = new ArrayList<NodeParser>();
+        var base = createTextParserV1(source);
+        list.add(base);
+
+        if (config.configData.formatting.markdown) {
+            var form = new ArrayList<MarkdownLiteParserV1.MarkdownFormat>();
+
+            if (base.getTagParser("bold") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.BOLD);
+            }
+
+            if (base.getTagParser("italic") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.ITALIC);
+            }
+
+            if (base.getTagParser("underline") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.UNDERLINE);
+            }
+
+            if (base.getTagParser("strikethrough") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.STRIKETHROUGH);
+            }
+
+            if (base.getTagParser(SPOILER_TAG) != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.SPOILER);
+            }
+
+            if (!form.isEmpty()) {
+                list.add(new MarkdownLiteParserV1(SpoilerNode::new, MarkdownLiteParserV1::defaultQuoteFormatting, form.toArray(new MarkdownLiteParserV1.MarkdownFormat[0])));
+            }
+        }
+
+        if (config.configData.formatting.legacyChatFormatting) {
+            var form = new ArrayList<Formatting>();
+            for (var formatting : Formatting.values()) {
+                if (base.getTagParser(formatting.getName()) != null) {
+                    form.add(formatting);
+                }
+            }
+
+            boolean color = base.getTagParser("color") != null;
+
+            if (!form.isEmpty() || color) {
+                list.add(new LegacyFormattingParser(color, form.toArray(new Formatting[0])));
+            }
+        }
+
+        return NodeParser.merge(list);
+    }
+
+
+        public static TextParserV1 createTextParserV1(ServerCommandSource source) {
         var parser = new TextParserV1();
         Config config = ConfigManager.getConfig();
 
+        var allowedFormatting = config.getAllowedFormatting(source);
+
         for (var entry : TextParserV1.DEFAULT.getTags()) {
-            if (config.defaultFormattingCodes.getBoolean(entry.name())
+            if (allowedFormatting.getBoolean(entry.name())
                     || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name(), entry.userSafe() ? 2 : 4)
                     || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + ".type." + entry.type(), entry.userSafe() ? 2 : 4)
             ) {
@@ -76,33 +142,30 @@ public final class StyledChatUtils {
             }
         }
 
-        if (config.defaultFormattingCodes.getBoolean(SPOILER_TAG)
+        if (allowedFormatting.getBoolean(SPOILER_TAG)
                 || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
             parser.register(SPOILER_TEXT_TAG);
         }
 
-        //StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
+        StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
 
         return parser;
     }
 
     public static Map<String, TextNode> getEmotes(PlaceholderContext context) {
-        return ConfigManager.getConfig().getEmotes(context.hasPlayer() ? context.player().getCommandSource() : context.server().getCommandSource());
+        return StyledChatStyles.getEmotes(context.hasPlayer() ? context.player().getCommandSource() : context.server().getCommandSource());
     }
 
     public static Text formatFor(PlaceholderContext context, String input) {
         var parser = createParser(context.hasPlayer() ? context.player().getCommandSource() : context.server().getCommandSource());
         var config = ConfigManager.getConfig();
-        if (config.configData.enableMarkdown || config.configData.legacyChatFormatting) {
-            input = legacyFormatMessage(input, parser.getTags().stream().map((x) -> x.name()).collect(Collectors.toSet()));
-        }
         if (StyledChatMod.USE_FABRIC_API) {
             input = StyledChatEvents.PRE_MESSAGE_CONTENT.invoker().onPreMessage(input, context);
         }
 
         var emotes = getEmotes(context);
 
-        var value = additionalParsing(new ParentNode(parser.parseNodes(new LiteralNode(input))));
+        var value = additionalParsing(new ParentNode(parser.parseNodes(new LiteralNode(input))), context);
 
         if (StyledChatMod.USE_FABRIC_API) {
             value = StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(value, context);
@@ -116,7 +179,7 @@ public final class StyledChatUtils {
                 (id) -> emotes.containsKey(id) ? ((ctx, arg) -> PlaceholderResult.value(Placeholders.parseText(emotes.get(id), ctx))) : null
         );
 
-        if (config.configData.allowModdedDecorators) {
+        if (config.configData.formatting.allowModdedDecorators) {
             try {
                 text = context.server().getMessageDecorator().decorate(context.player(), text).get();
             } catch (Exception e) {
@@ -131,16 +194,8 @@ public final class StyledChatUtils {
     public static String legacyFormatMessage(String input, Set<String> handlers) {
         var config = ConfigManager.getConfig();
 
-        if (config.configData.legacyChatFormatting) {
-            for (var formatting : Formatting.values()) {
-                if (handlers.contains(formatting.getName())) {
-                    input = input.replace("&" + formatting.getCode(), "<" + formatting.getName() + ">");
-                }
-            }
-        }
-
         try {
-            if (config.configData.enableMarkdown) {
+            if (config.configData.formatting.markdown) {
                 if (handlers.contains(SPOILER_TAG)) {
                     input = input.replaceAll(getMarkdownRegex("||", "\\|\\|"), "<spoiler>$2</spoiler>");
                 }
@@ -174,10 +229,8 @@ public final class StyledChatUtils {
 
     public static MessageDecorator getChatDecorator() {
         return (player, message) -> {
-            Config config = ConfigManager.getConfig();
-
             if (player != null) {
-                return CompletableFuture.completedFuture(config.getChat(player, formatFor(PlaceholderContext.of(player), message.getString())));
+                return CompletableFuture.completedFuture(StyledChatStyles.getChat(player, formatFor(PlaceholderContext.of(player), message.getString())));
             } else {
                 return CompletableFuture.completedFuture(formatFor(PlaceholderContext.of(StyledChatMod.server), message.getString()));
             }
@@ -234,17 +287,17 @@ public final class StyledChatUtils {
             });
         };
     }
-    public static TextNode additionalParsing(TextNode node) {
+    public static TextNode additionalParsing(TextNode node, PlaceholderContext context) {
         var config = ConfigManager.getConfig();
-        if (config.configData.parseLinksInChat) {
-            node = parseLinks(node);
+        if (config.configData.formatting.parseLinksInChat) {
+            node = parseLinks(node, context);
         }
         return node;
     }
 
-    public static TextNode parseLinks(TextNode node) {
+    public static TextNode parseLinks(TextNode node, PlaceholderContext context) {
         if (node instanceof LiteralNode literalNode) {
-            var style = ConfigManager.getConfig().linkStyle;
+            var style = ConfigManager.getConfig().getLinkStyle(context);
             var input = literalNode.value();
             var list = new ArrayList<TextNode>();
 
@@ -280,7 +333,7 @@ public final class StyledChatUtils {
             var list = new ArrayList<TextNode>();
 
             for (var child : parentTextNode.getChildren()) {
-                list.add(parseLinks(child));
+                list.add(parseLinks(child, context));
             }
 
             return parentTextNode.copyWith(list.toArray(new TextNode[0]));
@@ -310,7 +363,6 @@ public final class StyledChatUtils {
     }
 
     public static Text formatMessage(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
-        Config config = ConfigManager.getConfig();
         var ext = (ExtSignedMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");
@@ -323,7 +375,7 @@ public final class StyledChatUtils {
         return switch (type.getValue().getPath()) {
             case "msg_command_incoming" -> {
                 try {
-                    yield config.getPrivateMessageReceived(
+                    yield StyledChatStyles.getPrivateMessageReceived(
                             source.getDisplayName(),
                             ext.styledChat_getArg("targets"),
                             input, source
@@ -335,7 +387,7 @@ public final class StyledChatUtils {
             }
             case "msg_command_outgoing" -> {
                 try {
-                    yield config.getPrivateMessageSent(
+                    yield StyledChatStyles.getPrivateMessageSent(
                             source.getDisplayName(),
                             ext.styledChat_getArg("targets"),
                             input, source
@@ -347,7 +399,7 @@ public final class StyledChatUtils {
             }
             case "team_msg_command_incoming" -> {
                 try {
-                    yield config.getTeamChatReceived(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
+                    yield StyledChatStyles.getTeamChatReceived(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                             source.getDisplayName(),
                             input, source
                     );
@@ -358,7 +410,7 @@ public final class StyledChatUtils {
 
             case "team_msg_command_outgoing" -> {
                 try {
-                    yield config.getTeamChatSent(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
+                    yield StyledChatStyles.getTeamChatSent(((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                             source.getDisplayName(),
                             input, source
                     );
@@ -366,18 +418,18 @@ public final class StyledChatUtils {
                     yield Text.literal("");
                 }
             }
-            case "say_command" -> config.getSayCommand(source, input);
+            case "say_command" -> StyledChatStyles.getSayCommand(source, input);
 
-            case "emote_command" -> config.getMeCommand(source, input);
+            case "emote_command" -> StyledChatStyles.getMeCommand(source, input);
 
-            case "chat" -> config.getChat(source.getPlayer(), input);
+            case "chat" -> StyledChatStyles.getChat(source.getPlayer(), input);
 
             default -> input;
         };
     }
 
     public static Text maybeFormatFor(ServerCommandSource source, String original, Text originalContent) {
-        if (source.isExecutedByPlayer() && ConfigManager.getConfig().configData.requireChatPreviewForFormatting) {
+        if (source.isExecutedByPlayer() && ConfigManager.getConfig().configData.chatPreview.requireForFormatting) {
             return originalContent;
         }
 
@@ -412,20 +464,20 @@ public final class StyledChatUtils {
 
         var source = player.getCommandSource();
 
-        var handler = StyledChatUtils.createParser(source);
+        var handler = StyledChatUtils.createTextParserV1(source);
 
-        if (config.configData.sendAutoCompletionForTags) {
+        if (config.configData.autoCompletion.tags) {
             for (var tag : handler.getTags()) {
                 set.add("<" + tag.name() + ">");
 
-                if (config.configData.sendAutoCompletionForTagAliases && tag.aliases() != null) {
+                if (config.configData.autoCompletion.tagAliases && tag.aliases() != null) {
                     for (var a : tag.aliases()) {
                         set.add("<" + a + ">");
                     }
                 }
             }
         }
-        if (config.configData.sendAutoCompletionForEmotes) {
+        if (config.configData.autoCompletion.emoticons) {
             for (var emote : config.getEmotes(source).keySet()) {
                 set.add(":" + emote + ":");
             }
@@ -434,5 +486,46 @@ public final class StyledChatUtils {
         if (!set.isEmpty()) {
             player.networkHandler.sendPacket(new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.ADD, new ArrayList<>(set)));
         }
+    }
+
+    public static ChatStyle getPersonalStyle(ServerPlayerEntity player) {
+        return ((ExtPlayNetworkHandler) player.networkHandler).styledChat$getStyle();
+    }
+
+    public static void updateStyle(ServerPlayerEntity player) {
+        ((ExtPlayNetworkHandler) player.networkHandler).styledChat$setStyle(createStyleOf(player));
+    }
+
+    @Nullable
+    public static ChatStyleData getPersonalData(ServerPlayerEntity player) {
+        return PlayerDataApi.getCustomDataFor(player, PLAYER_DATA);
+    }
+
+    public static ChatStyleData getOrCreatePersonalData(ServerPlayerEntity player) {
+        var style = PlayerDataApi.getCustomDataFor(player, PLAYER_DATA);
+
+        if (style == null) {
+            style = new VersionedChatStyleData();
+            PlayerDataApi.setCustomDataFor(player, PLAYER_DATA, style);
+        }
+        return style;
+    }
+
+    public static void clearPersonalStyleData(ServerPlayerEntity player) {
+        PlayerDataApi.setCustomDataFor(player, PLAYER_DATA, new VersionedChatStyleData());
+    }
+
+    public static ChatStyle createStyleOf(ServerPlayerEntity player) {
+        var style = PlayerDataApi.getCustomDataFor(player, PLAYER_DATA);
+
+        if (style == null) {
+            style = new VersionedChatStyleData();
+        } else {
+            style = (VersionedChatStyleData) style.clone();
+        }
+
+        style.fillPermissionOptionProvider(player.getCommandSource());
+
+        return new ChatStyle(style);
     }
 }

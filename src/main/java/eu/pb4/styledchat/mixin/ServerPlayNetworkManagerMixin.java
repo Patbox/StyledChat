@@ -1,5 +1,8 @@
 package eu.pb4.styledchat.mixin;
 
+import eu.pb4.styledchat.StyledChatStyles;
+import eu.pb4.styledchat.config.ChatStyle;
+import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
@@ -25,27 +28,27 @@ import java.util.concurrent.CompletableFuture;
 @Mixin(ServerPlayNetworkHandler.class)
 public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHandler {
 
-    @Unique
-    Text styledChat_lastCached = null;
-
     @Shadow
     public ServerPlayerEntity player;
-
+    @Unique
+    Text styledChat_lastCached = null;
+    @Unique
+    private ChatStyle styledChat$style;
 
     @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_replaceDisconnectMessage(Text text) {
-        return ConfigManager.getConfig().getLeft(this.player);
+        return StyledChatStyles.getLeft(this.player);
     }
 
     @Redirect(method = "decorateChat", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_replaceDecorator2(MinecraftServer instance) {
         var config = ConfigManager.getConfig().configData;
-        return config.sendFullMessageInChatPreview && !config.requireChatPreviewForFormatting ? StyledChatUtils.getChatDecorator() : StyledChatUtils.getRawDecorator();
+        return config.chatPreview.sendFullMessage && !config.chatPreview.requireForFormatting ? StyledChatUtils.getChatDecorator() : StyledChatUtils.getRawDecorator();
     }
 
     @Inject(method = "sendChatPreviewPacket", at = @At("HEAD"))
     private void styledChat_store(int queryId, Text preview, CallbackInfo ci) {
-        this.styledChat_lastCached = ServerTranslationUtils.translate(this.player, preview);
+        this.styledChat_lastCached = ServerTranslationUtils.translateIfBreaks(this.player, preview);
     }
 
     @Inject(method = "handleDecoratedMessage", at = @At("HEAD"))
@@ -60,9 +63,22 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Inject(method = "method_45065", at = @At("HEAD"))
     private void styledChat_removeCachedIfNotPreviewed(SignedMessage signedMessage, CallbackInfoReturnable<CompletableFuture> cir) {
-       if (!signedMessage.getSignedContent().isDecorated()) {
-           this.styledChat_lastCached = null;
-       }
+        if (!signedMessage.getSignedContent().isDecorated()) {
+            this.styledChat_lastCached = null;
+        }
+    }
+
+    @Override
+    public ChatStyle styledChat$getStyle() {
+        if (this.styledChat$style == null) {
+            this.styledChat$style = StyledChatUtils.createStyleOf(this.player);
+        }
+        return this.styledChat$style;
+    }
+
+    @Override
+    public void styledChat$setStyle(ChatStyle style) {
+        this.styledChat$style = style;
     }
 
     @Override

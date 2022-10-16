@@ -1,33 +1,28 @@
 package eu.pb4.styledchat.mixin;
 
-import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.StyledChatUtils;
+import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import net.minecraft.network.message.MessageBody;
-import net.minecraft.network.message.MessageHeader;
-import net.minecraft.network.message.MessageSignatureData;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Mixin(SignedMessage.class)
 public class SignedMessageMixin implements ExtSignedMessage {
     /*@Unique
     private String styledChat_original;*/
 
-    @Shadow @Final private MessageBody signedBody;
+    @Shadow
+    @Final
+    private MessageBody signedBody;
     @Unique
-    private Map<String, Text> styledChat_args = new HashMap<>();
+    private final Map<String, Text> styledChat_args = new HashMap<>();
 
     /*@Override
     public void styledChat_setOriginal(String message) {
