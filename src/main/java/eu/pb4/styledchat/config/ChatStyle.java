@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChatStyle {
+    public static final ChatStyle EMPTY = new ChatStyle(new ChatStyleData());
     public final MinecraftPredicate require;
 
     public final TextNode displayName;

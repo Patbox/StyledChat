@@ -489,11 +489,17 @@ public final class StyledChatUtils {
     }
 
     public static ChatStyle getPersonalStyle(ServerPlayerEntity player) {
-        return ((ExtPlayNetworkHandler) player.networkHandler).styledChat$getStyle();
+        if (player.networkHandler != null) {
+            return ((ExtPlayNetworkHandler) player.networkHandler).styledChat$getStyle();
+        } else {
+            return ChatStyle.EMPTY;
+        }
     }
 
     public static void updateStyle(ServerPlayerEntity player) {
-        ((ExtPlayNetworkHandler) player.networkHandler).styledChat$setStyle(createStyleOf(player));
+        if (player.networkHandler != null) {
+            ((ExtPlayNetworkHandler) player.networkHandler).styledChat$setStyle(createStyleOf(player));
+        }
     }
 
     @Nullable
