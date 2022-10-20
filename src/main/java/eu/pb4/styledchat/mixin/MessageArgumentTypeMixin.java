@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(MessageArgumentType.class)
 public class MessageArgumentTypeMixin {
 
-    @Redirect(method = { "getMessage", "getSignedMessage" }, at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/context/CommandContext;getArgument(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Object;"))
+    /*@Redirect(method = { "getMessage", "getSignedMessage" }, at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/context/CommandContext;getArgument(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Object;"))
     private static Object styledChat_setContext(CommandContext instance, String name, Class<Object> clazz) {
         var obj = (MessageArgumentType.MessageFormat) instance.getArgument(name, MessageArgumentType.MessageFormat.class);
         ((ExtMessageFormat) obj).styledChat_setSource(instance.getInput(), (ServerCommandSource) instance.getSource(), instance::getArgument);
         return obj;
-    }
+    }*/
 }

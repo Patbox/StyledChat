@@ -22,13 +22,13 @@ public class MessageFormatMixin implements ExtMessageFormat {
     private ServerCommandSource styledChat_source;
     private BiFunction<String, Class<?>, Object> styledChat_args;
 
-    @Redirect(method = "decorate", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
+    /*@Redirect(method = "method_45566", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private <T> MessageDecorator styledChat_replaceDecorator2(MinecraftServer instance) {
         if (this.styledChat_context != null && ConfigManager.getConfig().configData.chatPreview.sendFullMessage) {
             return StyledChatUtils.getCommandDecorator(this.styledChat_context, this.styledChat_source, this.styledChat_args);
         }
         return StyledChatUtils.getRawDecorator();
-    }
+    }*/
 
     @Override
     public <T> void styledChat_setSource(String command, ServerCommandSource source, BiFunction<String, Class<T>, T> argumentGetter) {

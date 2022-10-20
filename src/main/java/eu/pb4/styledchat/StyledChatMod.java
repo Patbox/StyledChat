@@ -24,7 +24,10 @@ public class StyledChatMod implements ModInitializer {
 	public static boolean USE_FABRIC_API = true;
 
 	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(Registry.MESSAGE_TYPE_KEY, new Identifier("styled_chat", "generic_hack"));
-	public static MessageType MESSAGE_TYPE = new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("%s"));
+
+	public static MessageType getMessageType() {
+		return server.getRegistryManager().get(Registry.MESSAGE_TYPE_KEY).getOrThrow(MESSAGE_TYPE_ID);
+	}
 
 	@Override
 	public void onInitialize() {

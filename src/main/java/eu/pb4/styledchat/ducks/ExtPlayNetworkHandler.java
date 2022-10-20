@@ -5,8 +5,8 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 public interface ExtPlayNetworkHandler {
-    @Nullable
-    Text styledChat_getLastCached();
+    /*@Nullable
+    Text styledChat_getLastCached();*/
 
     void styledChat$setStyle(ChatStyle style);
     ChatStyle styledChat$getStyle();

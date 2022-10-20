@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.concurrent.CompletableFuture;
 
-@Mixin(MessageArgumentType.SignedMessage.class)
+@Mixin(MessageArgumentType.class)
 public class MessageArgumentTypeSignedMessageMixin {
-    @Redirect(method = "method_45069", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
+    /*@Redirect(method = "method_45566", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
     private MessageDecorator styledChat_returnCached(MinecraftServer instance) {
         return (player, message) -> {
             if (player != null) {
@@ -22,5 +22,5 @@ public class MessageArgumentTypeSignedMessageMixin {
             }
             return CompletableFuture.completedFuture(message);
         };
-    }
+    }*/
 }

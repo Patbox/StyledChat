@@ -61,7 +61,7 @@ public class PlayerManagerMixin {
         StyledChatUtils.sendAutocompliton(player);
     }
 
-    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/network/message/MessageSourceProfile;Lnet/minecraft/network/message/MessageType$Parameters;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageType$Parameters;Ljava/lang/String;)V"), require = 0)
+    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/network/message/MessageType$Parameters;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageType$Parameters;Ljava/lang/String;)V"), require = 0)
     private void styledChat_fixServerLogs(MinecraftServer instance, Text text, MessageType.Parameters parameters, String string, SignedMessage signedMessage) {
         var out = ((ExtSignedMessage) (Object) signedMessage).styledChat_getArg("override");
         if (out != null) {
