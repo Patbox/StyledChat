@@ -23,6 +23,7 @@ import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.VersionedChatStyleData;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
+import eu.pb4.styledchat.parser.LinkParser;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.EntitySelector;
@@ -75,10 +76,19 @@ public final class StyledChatUtils {
     }
 
     public static NodeParser createParser(ServerCommandSource source) {
+        return createParser(PlaceholderContext.of(source));
+    }
+
+    public static NodeParser createParser(PlaceholderContext context) {
         var config = ConfigManager.getConfig();
         var list = new ArrayList<NodeParser>();
-        var base = createTextParserV1(source);
+        var base = createTextParserV1(context.source());
+
         list.add(base);
+
+        if (config.configData.formatting.parseLinksInChat) {
+            list.add(new LinkParser(ConfigManager.getConfig().getLinkStyle(context)));
+        }
 
         if (config.configData.formatting.markdown) {
             var form = new ArrayList<MarkdownLiteParserV1.MarkdownFormat>();
@@ -127,7 +137,7 @@ public final class StyledChatUtils {
     }
 
 
-        public static TextParserV1 createTextParserV1(ServerCommandSource source) {
+    public static TextParserV1 createTextParserV1(ServerCommandSource source) {
         var parser = new TextParserV1();
         Config config = ConfigManager.getConfig();
 
@@ -157,7 +167,7 @@ public final class StyledChatUtils {
     }
 
     public static Text formatFor(PlaceholderContext context, String input) {
-        var parser = createParser(context.hasPlayer() ? context.player().getCommandSource() : context.server().getCommandSource());
+        var parser = createParser(context);
         var config = ConfigManager.getConfig();
         if (StyledChatMod.USE_FABRIC_API) {
             input = StyledChatEvents.PRE_MESSAGE_CONTENT.invoker().onPreMessage(input, context);
@@ -165,7 +175,7 @@ public final class StyledChatUtils {
 
         var emotes = getEmotes(context);
 
-        var value = additionalParsing(new ParentNode(parser.parseNodes(new LiteralNode(input))), context);
+        var value = TextNode.asSingle(parser.parseNodes(new LiteralNode(input)));
 
         if (StyledChatMod.USE_FABRIC_API) {
             value = StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(value, context);
@@ -287,59 +297,19 @@ public final class StyledChatUtils {
             });
         };
     }
+
+    @Deprecated
     public static TextNode additionalParsing(TextNode node, PlaceholderContext context) {
-        var config = ConfigManager.getConfig();
-        if (config.configData.formatting.parseLinksInChat) {
+
+        if (ConfigManager.getConfig().configData.formatting.parseLinksInChat) {
             node = parseLinks(node, context);
         }
         return node;
     }
 
+    @Deprecated
     public static TextNode parseLinks(TextNode node, PlaceholderContext context) {
-        if (node instanceof LiteralNode literalNode) {
-            var style = ConfigManager.getConfig().getLinkStyle(context);
-            var input = literalNode.value();
-            var list = new ArrayList<TextNode>();
-
-            Matcher matcher = URL_REGEX.matcher(input);
-            int currentPos = 0;
-            int currentEnd = input.length();
-
-            while (matcher.find()) {
-                if (currentEnd <= matcher.start()) {
-                    break;
-                }
-
-                String betweenText = input.substring(currentPos, matcher.start());
-
-                if (betweenText.length() != 0) {
-                    list.add(new LiteralNode(betweenText));
-                }
-
-                list.add(new ClickActionNode(Placeholders.parseNodes(style, Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, Map.of("link", Text.literal(matcher.group()))).getChildren(), ClickEvent.Action.OPEN_URL, new LiteralNode(matcher.group())));
-
-                currentPos = matcher.end();
-            }
-
-            if (currentPos < currentEnd) {
-                String restOfText = input.substring(currentPos, currentEnd);
-                if (restOfText.length() != 0) {
-                    list.add(new LiteralNode(restOfText));
-                }
-            }
-
-            return list.size() == 1 ? list.get(0) : new ParentNode(list.toArray(new TextNode[0]));
-        } else if (node instanceof ParentTextNode parentTextNode) {
-            var list = new ArrayList<TextNode>();
-
-            for (var child : parentTextNode.getChildren()) {
-                list.add(parseLinks(child, context));
-            }
-
-            return parentTextNode.copyWith(list.toArray(new TextNode[0]));
-        }
-
-        return node;
+        return TextNode.asSingle(LinkParser.parse(node, context));
     }
 
     public static boolean isHandledByMod(RegistryKey<MessageType> typeKey) {
