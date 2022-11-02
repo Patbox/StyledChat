@@ -23,7 +23,7 @@ public interface StyledChatSentMessage extends SentMessage {
         public void send(ServerPlayerEntity sender, boolean filterMaskEnabled, MessageType.Parameters params) {
             SignedMessage signedMessage = this.message.withFilterMaskEnabled(filterMaskEnabled);
             if (!signedMessage.isFullyFiltered()) {
-                sender.networkHandler.method_45170(signedMessage, this.parameters);
+                sender.networkHandler.sendChatMessage(signedMessage, this.parameters);
             }
         }
 
@@ -41,7 +41,7 @@ public interface StyledChatSentMessage extends SentMessage {
 
         @Override
         public void send(ServerPlayerEntity sender, boolean filterMaskEnabled, MessageType.Parameters params) {
-            sender.networkHandler.method_45168(message.method_46291(), this.parameters);
+            sender.networkHandler.sendProfilelessChatMessage(message.getContent(), this.parameters);
         }
 
         @Override

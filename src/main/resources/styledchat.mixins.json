@@ -4,12 +4,11 @@
   "package": "eu.pb4.styledchat.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "class_7655Mixin",
+    "RegistryLoaderMixin",
     "CommandManagerMixin",
     "MessageArgumentTypeMixin",
     "MessageArgumentTypeSignedMessageMixin",
     "MessageFormatMixin",
-    "MessageTypeMixin",
     "MinecraftServerMixin",
     "PlayerAdvancementTrackerMixin",
     "PlayerEntityMixin",

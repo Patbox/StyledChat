@@ -369,7 +369,7 @@ public final class StyledChatUtils {
 
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY
                 ? baseInput
-                : maybeFormatFor(source, ext.styledChat_getOriginal(), message.method_46291());
+                : maybeFormatFor(source, ext.styledChat_getOriginal(), message.getContent());
 
 
         return switch (type.getValue().getPath()) {
@@ -453,7 +453,7 @@ public final class StyledChatUtils {
         //MessageMetadata messageMetadata = message.createMetadata();
         //MessageBody messageBody = new MessageBody(new DecoratedContents(ext.styledChat_getOriginal(), input), messageMetadata.timestamp(), messageMetadata.salt(), LastSeenMessageList.EMPTY);
         //MessageHeader messageHeader = new MessageHeader(null, messageMetadata.sender());
-        return new SignedMessage(message.link(), null, MessageBody.method_46305(message.getSignedContent()), input, null);
+        return new SignedMessage(message.link(), null, MessageBody.ofUnsigned(message.getSignedContent()), input, null);
     }
 
     public static void sendAutocompliton(ServerPlayerEntity player) {

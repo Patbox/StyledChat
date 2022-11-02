@@ -24,7 +24,7 @@ import java.util.Collection;
 public class MessageCommandMixin {
     @Inject(method = "execute", at = @At("HEAD"))
     private static void styledChat_formatOgText(ServerCommandSource serverCommandSource, Collection<ServerPlayerEntity> collection, SignedMessage signedMessage, CallbackInfo ci) {
-        var input = StyledChatUtils.maybeFormatFor(serverCommandSource, signedMessage.getSignedContent(), signedMessage.method_46291());
+        var input = StyledChatUtils.maybeFormatFor(serverCommandSource, signedMessage.getSignedContent(), signedMessage.getContent());
         ExtSignedMessage.setArg(signedMessage, "base_input", input);
     }
 

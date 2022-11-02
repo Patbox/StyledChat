@@ -17,7 +17,7 @@ public interface SentMessageMixin {
     private static void styledChat$patchStyle(SignedMessage message, CallbackInfoReturnable<SentMessage> cir) {
         var override = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (override != null && StyledChatMod.server != null) {
-            if (message.method_46293()) {
+            if (message.isSenderMissing()) {
                 cir.setReturnValue(new StyledChatSentMessage.System(message, override, new MessageType.Parameters(StyledChatMod.getMessageType(), override, null)));
             } else {
                 cir.setReturnValue(new StyledChatSentMessage.Chat(message, override, new MessageType.Parameters(StyledChatMod.getMessageType(), override, null)));
