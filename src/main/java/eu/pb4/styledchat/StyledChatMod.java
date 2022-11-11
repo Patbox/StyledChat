@@ -10,8 +10,10 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Decoration;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.util.registry.RegistryKeys;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,10 +25,10 @@ public class StyledChatMod implements ModInitializer {
 
 	public static boolean USE_FABRIC_API = true;
 
-	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(Registry.MESSAGE_TYPE_KEY, new Identifier("styled_chat", "generic_hack"));
+	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(RegistryKeys.CHAT_TYPE, new Identifier("styled_chat", "generic_hack"));
 
 	public static MessageType getMessageType() {
-		return server.getRegistryManager().get(Registry.MESSAGE_TYPE_KEY).getOrThrow(MESSAGE_TYPE_ID);
+		return server.getRegistryManager().get(RegistryKeys.CHAT_TYPE).getOrThrow(MESSAGE_TYPE_ID);
 	}
 
 	@Override
