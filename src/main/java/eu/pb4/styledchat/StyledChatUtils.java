@@ -24,6 +24,7 @@ import eu.pb4.styledchat.config.data.VersionedChatStyleData;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.parser.LinkParser;
+import eu.pb4.styledchat.parser.MentionParser;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.EntitySelector;
@@ -88,6 +89,10 @@ public final class StyledChatUtils {
 
         if (config.configData.formatting.parseLinksInChat) {
             list.add(new LinkParser(ConfigManager.getConfig().getLinkStyle(context)));
+        }
+
+        if (config.configData.formatting.parseMentionsInChat) {
+            list.add(new MentionParser(ConfigManager.getConfig().getMentionStyle(context), context));
         }
 
         if (config.configData.formatting.markdown) {

@@ -20,6 +20,8 @@ public class ConfigData {
         public boolean legacyChatFormatting = false;
         @SerializedName("parse_links")
         public boolean parseLinksInChat = true;
+        @SerializedName("parse_mentions")
+        public boolean parseMentionsInChat = true;
         @SerializedName("markdown")
         public boolean markdown = true;
         @SerializedName("formatting_from_other_mods")

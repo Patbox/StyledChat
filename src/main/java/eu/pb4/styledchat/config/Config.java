@@ -309,6 +309,19 @@ public final class Config {
         return this.defaultStyle.getLink();
     }
 
+    public TextNode getMentionStyle(PlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.source());
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = entry.getMention();
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+        return this.defaultStyle.getMention();
+    }
+
     public Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
         var context2 = PredicateContext.of(entity);
         for (var entry : this.permissionStyle) {
