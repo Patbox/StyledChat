@@ -24,7 +24,7 @@ public class RegistryLoaderMixin {
 
         for (var pair : list) {
             var reg = pair.getFirst();
-            if (reg.getKey().equals(Registry.MESSAGE_TYPE_KEY)) {
+            if (reg.getKey().equals(RegistryKeys.CHAT_TYPE)) {
                 Registry.register((Registry<MessageType>) reg, StyledChatMod.MESSAGE_TYPE_ID, new MessageType(Decoration.ofChat("%s"), Decoration.ofChat("%s")));
             }
         }
