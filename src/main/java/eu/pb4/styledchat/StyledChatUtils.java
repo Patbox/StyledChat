@@ -425,10 +425,10 @@ public final class StyledChatUtils {
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
 
-        MessageMetadata messageMetadata = message.createMetadata();
-        MessageBody messageBody = new MessageBody(new DecoratedContents(ext.styledChat_getOriginal(), input), messageMetadata.timestamp(), messageMetadata.salt(), LastSeenMessageList.EMPTY);
-        MessageHeader messageHeader = new MessageHeader(null, messageMetadata.sender());
-        return new SignedMessage(messageHeader, MessageSignatureData.EMPTY, messageBody, Optional.empty(), null);
+        //MessageMetadata messageMetadata = message.createMetadata();
+        //MessageBody messageBody = new MessageBody(new DecoratedContents(ext.styledChat_getOriginal(), input), messageMetadata.timestamp(), messageMetadata.salt(), LastSeenMessageList.EMPTY);
+        //MessageHeader messageHeader = new MessageHeader(null, messageMetadata.sender());
+        return new SignedMessage(message.link(), null, MessageBody.ofUnsigned(message.getSignedContent()), input, null);
     }
 
     public static void sendAutocompliton(ServerPlayerEntity player) {
