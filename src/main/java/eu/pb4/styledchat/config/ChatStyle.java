@@ -49,6 +49,7 @@ public class ChatStyle {
     public final TextNode spoilerStyle;
     public final String spoilerSymbol;
     public final TextNode linkStyle;
+    public final TextNode mentionStyle;
     public final Map<String, TextNode> emoticons = new HashMap<>();
     public final Object2BooleanMap<String> formatting = new Object2BooleanOpenHashMap<>();
 
@@ -78,6 +79,7 @@ public class ChatStyle {
         this.spoilerStyle = data.spoilerStyle != null ? StyledChatUtils.parseText(data.spoilerStyle) : defaultStyle.spoilerStyle;
         this.spoilerSymbol = data.spoilerSymbol != null ? data.spoilerSymbol : defaultStyle.spoilerSymbol;
         this.linkStyle = data.linkStyle != null ? StyledChatUtils.parseText(data.linkStyle) : defaultStyle.linkStyle;
+        this.mentionStyle = data.mentionStyle != null ? StyledChatUtils.parseText(data.mentionStyle) : defaultStyle.mentionStyle;
 
         for (var emoticon : data.emoticons.entrySet()) {
             this.emoticons.put(emoticon.getKey(), StyledChatUtils.parseText(emoticon.getValue()));
@@ -112,6 +114,7 @@ public class ChatStyle {
         this.spoilerStyle = data.spoilerStyle != null ? StyledChatUtils.parseText(data.spoilerStyle) : null;
         this.spoilerSymbol = data.spoilerSymbol != null ? data.spoilerSymbol : null;
         this.linkStyle = data.linkStyle != null ? StyledChatUtils.parseText(data.linkStyle) : null;
+        this.mentionStyle = data.mentionStyle != null ? StyledChatUtils.parseText(data.mentionStyle) : null;
 
         for (var emoticon : data.emoticons.entrySet()) {
             this.emoticons.put(emoticon.getKey(), StyledChatUtils.parseText(emoticon.getValue()));
@@ -419,6 +422,11 @@ public class ChatStyle {
     @Nullable
     public TextNode getLink() {
         return this.linkStyle;
+    }
+
+    @Nullable
+    public TextNode getMention() {
+        return this.mentionStyle;
     }
 
     @Nullable

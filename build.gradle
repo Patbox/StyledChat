@@ -25,6 +25,7 @@ repositories {
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://maven.gegy.dev' }
+	maven { url "https://api.modrinth.com/maven" }
 	//mavenLocal()
 }
 
@@ -49,6 +50,7 @@ dependencies {
 
 
 	modCompileOnly("fr.catcore:server-translations-api:1.4.17+1.19.2")
+	modCompileOnly("maven.modrinth:vanish:1.1.0")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")
 
 	//modRuntime "supercoder79:databreaker:0.2.7"

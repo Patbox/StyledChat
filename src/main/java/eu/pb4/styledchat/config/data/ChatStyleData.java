@@ -26,6 +26,8 @@ public class ChatStyleData implements Cloneable {
 
     @SerializedName("link_style")
     public String linkStyle;
+    @SerializedName("mention_style")
+    public String mentionStyle;
     @SerializedName("spoiler_style")
     public String spoilerStyle;
     @SerializedName("spoiler_symbol")
@@ -130,6 +132,7 @@ public class ChatStyleData implements Cloneable {
         data.messages.petDeathMessage = "${default_message}";
 
         data.linkStyle = "<underline><c:#7878ff>${link}";
+        data.mentionStyle = "<c:#7878ff>%player:displayname%";
         data.spoilerStyle = "<gray>${spoiler}";
         data.spoilerSymbol = "▌";
 
