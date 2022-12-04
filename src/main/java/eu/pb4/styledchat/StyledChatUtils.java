@@ -7,9 +7,6 @@ import eu.pb4.placeholders.api.TextParserUtils;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
-import eu.pb4.placeholders.api.node.parent.ClickActionNode;
-import eu.pb4.placeholders.api.node.parent.ParentNode;
-import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import eu.pb4.placeholders.api.parsers.LegacyFormattingParser;
 import eu.pb4.placeholders.api.parsers.MarkdownLiteParserV1;
 import eu.pb4.placeholders.api.parsers.NodeParser;
@@ -30,20 +27,18 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.network.message.*;
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextContent;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.registry.RegistryKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class StyledChatUtils {
@@ -404,10 +399,6 @@ public final class StyledChatUtils {
     }
 
     public static Text maybeFormatFor(ServerCommandSource source, String original, Text originalContent) {
-        if (source.isExecutedByPlayer() && ConfigManager.getConfig().configData.chatPreview.requireForFormatting) {
-            return originalContent;
-        }
-
         return formatFor(source, original);
     }
 
@@ -425,9 +416,6 @@ public final class StyledChatUtils {
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
 
-        //MessageMetadata messageMetadata = message.createMetadata();
-        //MessageBody messageBody = new MessageBody(new DecoratedContents(ext.styledChat_getOriginal(), input), messageMetadata.timestamp(), messageMetadata.salt(), LastSeenMessageList.EMPTY);
-        //MessageHeader messageHeader = new MessageHeader(null, messageMetadata.sender());
         return new SignedMessage(message.link(), null, MessageBody.ofUnsigned(message.getSignedContent()), input, null);
     }
 

@@ -24,7 +24,7 @@ repositories {
 
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 	maven { url 'https://maven.nucleoid.xyz' }
-	maven { url 'https://maven.gegy.dev' }
+	//maven { url 'https://maven.gegy.dev' }
 	maven { url "https://api.modrinth.com/maven" }
 	//mavenLocal()
 }
@@ -43,13 +43,13 @@ dependencies {
 
 	modCompileOnly fabricApi.module("fabric-message-api-v1", project.fabric_version)
 
-	modImplementation include("eu.pb4:predicate-api:0.1.0+1.19.2")
-	modImplementation include("eu.pb4:placeholder-api:2.0.0-pre.1+1.19.2")
+	modImplementation include("eu.pb4:predicate-api:0.1.0+1.19.3")
+	modImplementation include("eu.pb4:placeholder-api:2.0.0-pre.2+1.19.3")
 	modImplementation include("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
-	modImplementation include("eu.pb4:player-data-api:0.2.2+1.19.2")
+	modImplementation include("eu.pb4:player-data-api:0.2.2+1.19.3")
 
 
-	modCompileOnly("fr.catcore:server-translations-api:1.4.17+1.19.2")
+	modCompileOnly("fr.catcore:server-translations-api:1.4.18+1.19.2")
 	modCompileOnly("maven.modrinth:vanish:1.1.0")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")
 
@@ -129,7 +129,7 @@ curseforge {
 			releaseType = "release"
 			changelog = System.getenv("CHANGELOG")
 			changelogType = "markdown"
-			addGameVersion ((String) project.minecraft_version)
+			addGameVersion ((String) project.minecraft_version.split("-")[0])
 			addGameVersion "Fabric"
 			addGameVersion "Quilt"
 			mainArtifact(remapJar)

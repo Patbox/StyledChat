@@ -21,22 +21,11 @@ public class ConfigData {
         @SerializedName("parse_links")
         public boolean parseLinksInChat = true;
         @SerializedName("parse_mentions")
-        public boolean parseMentionsInChat = true;
+        public boolean parseMentionsInChat = false;
         @SerializedName("markdown")
         public boolean markdown = true;
         @SerializedName("formatting_from_other_mods")
         public boolean allowModdedDecorators = false;
-    }
-
-
-    @SerializedName("chat_preview")
-    public ChatPreview chatPreview = new ChatPreview();
-
-    public static class ChatPreview {
-        @SerializedName("send_full_message")
-        public boolean sendFullMessage = false;
-        @SerializedName("require_for_formatting")
-        public boolean requireForFormatting = false;
     }
 
     @SerializedName("auto_completion")

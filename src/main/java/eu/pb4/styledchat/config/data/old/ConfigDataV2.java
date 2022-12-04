@@ -51,9 +51,6 @@ public class ConfigDataV2 {
         data.autoCompletion.tags = this.sendAutoCompletionForTags;
         data.autoCompletion.emoticons = this.sendAutoCompletionForEmotes;
 
-        data.chatPreview.sendFullMessage = this.sendFullMessageInChatPreview;
-        data.chatPreview.requireForFormatting = this.requireChatPreviewForFormatting;
-
         data.formatting.markdown = this.enableMarkdown;
         data.formatting.legacyChatFormatting = this.legacyChatFormatting;
         data.formatting.allowModdedDecorators = this.allowModdedDecorators;
