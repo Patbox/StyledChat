@@ -6,18 +6,16 @@ import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.MinecraftPredicate;
-import eu.pb4.predicate.api.PredicateContext;
-import eu.pb4.predicate.api.PredicateRegistry;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -52,6 +50,7 @@ public class ChatStyle {
     public final TextNode mentionStyle;
     public final Map<String, TextNode> emoticons = new HashMap<>();
     public final Object2BooleanMap<String> formatting = new Object2BooleanOpenHashMap<>();
+    public final Map<Identifier, TextNode> custom = new HashMap<>();
 
 
     public ChatStyle(ChatStyleData data, ChatStyle defaultStyle) {
@@ -88,6 +87,16 @@ public class ChatStyle {
         for (var formatting : data.formatting.entrySet()) {
             this.formatting.put(formatting.getKey(), formatting.getValue().booleanValue());
         }
+
+        if (data.custom != null) {
+            for (var entry : data.custom.entrySet()) {
+                var id = Identifier.tryParse(entry.getKey());
+
+                if (id != null) {
+                    this.custom.put(id, StyledChatUtils.parseText(entry.getValue()));
+                }
+            }
+        }
     }
 
     public ChatStyle(ChatStyleData data) {
@@ -122,6 +131,16 @@ public class ChatStyle {
 
         for (var formatting : data.formatting.entrySet()) {
             this.formatting.put(formatting.getKey(), formatting.getValue().booleanValue());
+        }
+
+        if (data.custom != null) {
+            for (var entry : data.custom.entrySet()) {
+                var id = Identifier.tryParse(entry.getKey());
+
+                if (id != null) {
+                    this.custom.put(id, StyledChatUtils.parseText(entry.getValue()));
+                }
+            }
         }
     }
 
@@ -420,6 +439,26 @@ public class ChatStyle {
     }
 
     @Nullable
+    public Text getCustom(Identifier identifier, Text displayName, Text message, @Nullable Text receiver, ServerCommandSource source) {
+        var node = this.custom.get(identifier);
+
+        if (node == null) {
+            return null;
+        } else if (node == EmptyNode.INSTANCE) {
+            return StyledChatUtils.IGNORED_TEXT;
+        }
+
+        return Placeholders.parseText(
+                node,
+                PlaceholderContext.of(source),
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
+                Map.of("receiver", receiver == null ? Text.empty() : receiver,
+                        "displayName", displayName,
+                        "message", message)
+        );
+    }
+
+    @Nullable
     public TextNode getLink() {
         return this.linkStyle;
     }
@@ -444,12 +483,12 @@ public class ChatStyle {
             return null;
         }
 
-            return Placeholders.parseText(
-                    this.petDeath,
-                    PlaceholderContext.of(entity),
-                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                    Map.of("pet", entity.getDisplayName(),
-                            "default_message", vanillaMessage)
-            );
+        return Placeholders.parseText(
+                this.petDeath,
+                PlaceholderContext.of(entity),
+                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
+                Map.of("pet", entity.getDisplayName(),
+                        "default_message", vanillaMessage)
+        );
     }
 }

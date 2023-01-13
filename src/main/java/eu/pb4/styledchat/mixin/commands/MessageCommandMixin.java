@@ -44,7 +44,7 @@ public class MessageCommandMixin {
                 ));
 
 
-                source.sendChatMessage(styledChatSentMessage.reformat(sent), bl, sent);
+                source.sendChatMessage(styledChatSentMessage.reformat(sent,  MessageType.MSG_COMMAND_OUTGOING), bl, sent);
 
                 var rex = StyledChatMod.getMessageType().params(StyledChatStyles.getPrivateMessageReceived(
                         source.getDisplayName(),
@@ -52,7 +52,7 @@ public class MessageCommandMixin {
                         ExtSignedMessage.getArg(styledChatSentMessage.message(), "base_input"), source
                 ));
 
-                instance.sendChatMessage(styledChatSentMessage.reformat(rex), bl, rex);
+                instance.sendChatMessage(styledChatSentMessage.reformat(rex, MessageType.TEAM_MSG_COMMAND_INCOMING), bl, rex);
                 return;
             } catch (Exception e) {
                 e.printStackTrace();

@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.config.data.ChatStyleData;
@@ -16,6 +17,8 @@ import eu.pb4.styledchat.other.GenericModInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.IdentifierArgumentType;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -23,6 +26,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -43,7 +47,7 @@ public class Commands {
                                 .requires(Permissions.require("styledchat.set", 3))
                                 .then(fillWithProperties(argument("players", EntityArgumentType.players()),
                                         (x, p) -> x.then(argument("value", StringArgumentType.greedyString())
-                                                .executes((ctx) -> Commands.setProperty(ctx, p))
+                                                .executes((ctx) -> Commands.setProperty(ctx, p.apply(ctx)))
                                         ))
                                 )
                         )
@@ -51,14 +55,14 @@ public class Commands {
                         .then(literal("get")
                                 .requires(Permissions.require("styledchat.get", 3))
                                 .then(fillWithProperties(argument("player", EntityArgumentType.player()),
-                                        (x, p) -> x.executes((ctx) -> Commands.getProperty(ctx, p))
+                                        (x, p) -> x.executes((ctx) -> Commands.getProperty(ctx, p.apply(ctx)))
                                 ))
                         )
 
                         .then(literal("clear")
                                 .requires(Permissions.require("styledchat.clear", 3))
                                 .then(fillWithProperties(argument("players", EntityArgumentType.players()),
-                                        (x, p) -> x.executes((ctx) -> Commands.clearProperty(ctx, p))
+                                        (x, p) -> x.executes((ctx) -> Commands.clearProperty(ctx, p.apply(ctx)))
                                 ).then(literal("*").executes((ctx) -> Commands.clearProperty(ctx, null))))
                         )
         );
@@ -140,12 +144,29 @@ public class Commands {
         return players.size();
     }
 
-    private static ArgumentBuilder<ServerCommandSource, ?> fillWithProperties(ArgumentBuilder<ServerCommandSource, ?> base, BiConsumer<ArgumentBuilder<ServerCommandSource, ?>, ChatStyleData.PropertyGetSet> command) {
+    private static ArgumentBuilder<ServerCommandSource, ?> fillWithProperties(ArgumentBuilder<ServerCommandSource, ?> base, BiConsumer<ArgumentBuilder<ServerCommandSource, ?>, Function<CommandContext<ServerCommandSource>, ChatStyleData.PropertyGetSet>> command) {
         for (var prop : ChatStyleData.PROPERTIES.entrySet()) {
             var x = literal(prop.getKey());
-            command.accept(x, prop.getValue());
+            command.accept(x, (ctx) -> prop.getValue());
             base = base.then(x);
         }
+
+        {
+            var x = argument("id", IdentifierArgumentType.identifier())
+                    .suggests((context, builder) -> {
+                        for (var id : context.getSource().getServer().getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getIds()) {
+                            if (!id.getNamespace().equals("minecraft") && !id.equals(StyledChatMod.MESSAGE_TYPE_ID.getValue())) {
+                                builder.suggest(id.toString());
+                            }
+                        }
+
+                        return builder.buildFuture();
+                    });
+
+            command.accept(x, (ctx) -> ChatStyleData.PropertyGetSet.ofCustom(IdentifierArgumentType.getIdentifier(ctx, "id").toString()));
+            base = base.then(literal("custom").then(x));
+        }
+
         return base;
     }
 

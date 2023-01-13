@@ -1,6 +1,7 @@
 package eu.pb4.styledchat.mixin;
 
 import eu.pb4.styledchat.StyledChatMod;
+import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import eu.pb4.styledchat.other.StyledChatSentMessage;
 import net.minecraft.network.message.MessageType;
@@ -17,10 +18,12 @@ public interface SentMessageMixin {
     private static void styledChat$patchStyle(SignedMessage message, CallbackInfoReturnable<SentMessage> cir) {
         var override = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
         if (override != null && StyledChatMod.server != null) {
+            var type = ((ExtSignedMessage) (Object) message).styledChat_getType();
+
             if (message.isSenderMissing()) {
-                cir.setReturnValue(new StyledChatSentMessage.System(message, override, new MessageType.Parameters(StyledChatMod.getMessageType(), override, null)));
+                cir.setReturnValue(new StyledChatSentMessage.System(message, override, StyledChatUtils.createParameters(override), type));
             } else {
-                cir.setReturnValue(new StyledChatSentMessage.Chat(message, override, new MessageType.Parameters(StyledChatMod.getMessageType(), override, null)));
+                cir.setReturnValue(new StyledChatSentMessage.Chat(message, override, StyledChatUtils.createParameters(override), type));
             }
         }
     }

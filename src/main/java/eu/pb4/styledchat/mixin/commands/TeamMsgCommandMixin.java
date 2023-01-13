@@ -26,11 +26,11 @@ import java.util.List;
 public class TeamMsgCommandMixin {
     @Inject(method = "execute", at = @At(value = "HEAD"))
     private static void styledChat_formatOgText(ServerCommandSource serverCommandSource, Entity entity, Team team, List<ServerPlayerEntity> list, SignedMessage signedMessage, CallbackInfo ci) {
-        var input = ((ExtSignedMessage) (Object) signedMessage).styledChat_getArg("base_input");
+        var input = ExtSignedMessage.getArg(signedMessage, "base_input");
 
         if (input == null) {
             input = StyledChatUtils.formatFor(serverCommandSource, ((ExtSignedMessage) (Object) signedMessage).styledChat_getOriginal());
-            ((ExtSignedMessage) (Object) signedMessage).styledChat_setArg("base_input", input);
+            ExtSignedMessage.setArg(signedMessage,"base_input", input);
         }
     }
 
@@ -45,7 +45,7 @@ public class TeamMsgCommandMixin {
                             ExtSignedMessage.getArg(styledChatSentMessage.message(), "base_input"), instance.getCommandSource()
                     ));
 
-                    source.sendChatMessage(styledChatSentMessage.reformat(sent), bl, sent);
+                    source.sendChatMessage(styledChatSentMessage.reformat(sent, MessageType.TEAM_MSG_COMMAND_OUTGOING), bl, sent);
                 } else {
                     var rex = StyledChatMod.getMessageType().params(StyledChatStyles.getTeamChatReceived(
                             ((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
@@ -53,7 +53,7 @@ public class TeamMsgCommandMixin {
                             ExtSignedMessage.getArg(styledChatSentMessage.message(), "base_input"), source
                     ));
 
-                    instance.sendChatMessage(styledChatSentMessage.reformat(rex), bl, rex);
+                    instance.sendChatMessage(styledChatSentMessage.reformat(rex,  MessageType.TEAM_MSG_COMMAND_INCOMING), bl, rex);
                 }
                 return;
             } catch (Exception e) {

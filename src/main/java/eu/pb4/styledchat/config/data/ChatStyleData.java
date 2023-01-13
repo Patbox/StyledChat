@@ -39,6 +39,9 @@ public class ChatStyleData implements Cloneable {
     @SerializedName("emoticons")
     public Map<String, String> emoticons = new HashMap<>();
 
+    @SerializedName("custom_message_types")
+    public Map<String, String> custom = new HashMap<>();
+
     public static class Messages implements Cloneable {
         @SerializedName("chat")
         public String chat;
@@ -88,6 +91,7 @@ public class ChatStyleData implements Cloneable {
             base.messages = this.messages.clone();
             base.formatting = new HashMap<>(this.formatting);
             base.emoticons = new HashMap<>(this.emoticons);
+            base.custom = new HashMap<>(this.custom);
 
             return base;
         } catch (CloneNotSupportedException e) {
@@ -135,7 +139,6 @@ public class ChatStyleData implements Cloneable {
         data.mentionStyle = "<c:#7878ff>%player:displayname%";
         data.spoilerStyle = "<gray>${spoiler}";
         data.spoilerSymbol = "▌";
-
 
         {
             data.formatting.put(StyledChatUtils.SPOILER_TAG, true);
@@ -194,6 +197,8 @@ public class ChatStyleData implements Cloneable {
         this.spoilerStyle = Objects.requireNonNullElse(this.spoilerStyle, DEFAULT.spoilerStyle);
         this.spoilerSymbol = Objects.requireNonNullElse(this.spoilerSymbol, DEFAULT.spoilerSymbol);
 
+        this.custom = Objects.requireNonNullElse(this.custom, new HashMap<>());
+
         for (var key : DEFAULT.formatting.keySet()) {
             if (!this.formatting.containsKey(key)) {
                 this.formatting.put(key, DEFAULT.formatting.get(key));
@@ -221,6 +226,24 @@ public class ChatStyleData implements Cloneable {
                         e.printStackTrace();
                     }
                     return null;
+                }
+            };
+        }
+
+        static PropertyGetSet ofCustom(String key) {
+            return new PropertyGetSet() {
+                @Override
+                public void set(ChatStyleData data, String value) {
+                    if (value == null) {
+                        data.custom.remove(key);
+                    } else {
+                        data.custom.put(key, value);
+                    }
+                }
+
+                @Override
+                public String get(ChatStyleData data) {
+                    return data.custom.get(key);
                 }
             };
         }

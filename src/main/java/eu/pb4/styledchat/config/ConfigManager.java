@@ -42,7 +42,6 @@ public class ConfigManager {
             ConfigData config;
             var configFile = FabricLoader.getInstance().getConfigDir().resolve("styled-chat.json");
 
-
             if (Files.exists(configFile)) {
                 String json = Files.readString(configFile, StandardCharsets.UTF_8);
                 VersionConfigData versionConfigData = GSON.fromJson(json, VersionConfigData.class);

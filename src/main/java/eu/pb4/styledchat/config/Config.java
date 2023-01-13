@@ -13,6 +13,8 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -42,8 +44,8 @@ public final class Config {
             }
 
         }
-        
-        
+
+
         for (var tag : TextParserV1.DEFAULT.getTags()) {
             this.allPossibleAutoCompletionKeys.add("<" + tag.name() + ">");
             if (tag.aliases() != null) {
@@ -367,5 +369,20 @@ public final class Config {
         }
 
         return base;
+    }
+
+    @Nullable
+    public Text getCustom(Identifier identifier, Text displayName, Text message, @Nullable Text receiver, ServerCommandSource source) {
+        var context2 = PredicateContext.of(source);
+        for (var entry : this.permissionStyle) {
+            if (entry.require.test(context2).success()) {
+                var text = entry.getCustom(identifier, displayName, message, receiver, source);
+                if (text != null) {
+                    return text;
+                }
+            }
+        }
+
+        return this.defaultStyle.getCustom(identifier, displayName, message, receiver, source);
     }
 }

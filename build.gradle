@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.12-SNAPSHOT'
+	id 'fabric-loom' version '1.+'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 	id 'com.matthewprenger.cursegradle' version '1.4.0'
@@ -48,8 +48,7 @@ dependencies {
 	modImplementation include("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
 	modImplementation include("eu.pb4:player-data-api:0.2.2+1.19.3")
 
-
-	modCompileOnly("fr.catcore:server-translations-api:1.4.18+1.19.2")
+	modCompileOnly("fr.catcore:server-translations-api:1.4.19+1.19.3")
 	modCompileOnly("maven.modrinth:vanish:1.1.0")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")
 

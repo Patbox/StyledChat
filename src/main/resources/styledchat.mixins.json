@@ -7,7 +7,6 @@
     "RegistryLoaderMixin",
     "CommandManagerMixin",
     "MessageArgumentTypeMixin",
-    "MessageArgumentTypeSignedMessageMixin",
     "MessageFormatMixin",
     "MinecraftServerMixin",
     "PlayerAdvancementTrackerMixin",

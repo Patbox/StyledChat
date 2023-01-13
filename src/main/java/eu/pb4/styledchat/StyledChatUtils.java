@@ -326,7 +326,9 @@ public final class StyledChatUtils {
 
     public static void modifyForSending(SignedMessage message, ServerCommandSource source, RegistryKey<MessageType> type) {
         try {
-            ((ExtSignedMessage) (Object) message).styledChat_setArg("override", StyledChatUtils.formatMessage(message, source, type));
+             ExtSignedMessage.setArg(message, "override", StyledChatUtils.formatMessage(message, source, type));
+            ((ExtSignedMessage) (Object) message).styledChat_setType(type);
+            ((ExtSignedMessage) (Object) message).styledChat_setSource(source);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -341,6 +343,9 @@ public final class StyledChatUtils {
                 ? baseInput
                 : maybeFormatFor(source, ext.styledChat_getOriginal(), message.getContent());
 
+        if (baseInput == null) {
+            ext.styledChat_setArg("base_input", input);
+        }
 
         return switch (type.getValue().getPath()) {
             case "msg_command_incoming" -> {
@@ -394,7 +399,7 @@ public final class StyledChatUtils {
 
             case "chat" -> StyledChatStyles.getChat(source.getPlayer(), input);
 
-            default -> input;
+            default -> StyledChatStyles.getCustom(type.getValue(), source.getDisplayName(), input, null, source);
         };
     }
 
@@ -415,6 +420,9 @@ public final class StyledChatUtils {
 
         var baseInput = ext.styledChat_getArg("base_input");
         var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
+        if (baseInput == null) {
+            ext.styledChat_setArg("base_input", input);
+        }
 
         return new SignedMessage(message.link(), null, MessageBody.ofUnsigned(message.getSignedContent()), input, null);
     }
@@ -496,5 +504,9 @@ public final class StyledChatUtils {
         style.fillPermissionOptionProvider(player.getCommandSource());
 
         return new ChatStyle(style);
+    }
+
+    public static MessageType.Parameters createParameters(Text override) {
+        return new MessageType.Parameters(StyledChatMod.getMessageType(), override, null);
     }
 }
