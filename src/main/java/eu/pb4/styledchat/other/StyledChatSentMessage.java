@@ -77,7 +77,7 @@ public interface StyledChatSentMessage extends SentMessage {
                         ? baseInput
                         : message.getContent();
 
-                receiver.networkHandler.sendChatMessage(message, StyledChatUtils.createParameters(StyledChatStyles.getCustom(id, params.name(), input, params.targetName(), source != null ? source : StyledChatMod.server.getCommandSource())));
+                receiver.networkHandler.sendProfilelessChatMessage(message.getContent(), StyledChatUtils.createParameters(StyledChatStyles.getCustom(id, params.name(), input, params.targetName(), source != null ? source : StyledChatMod.server.getCommandSource())));
             }
         }
 
