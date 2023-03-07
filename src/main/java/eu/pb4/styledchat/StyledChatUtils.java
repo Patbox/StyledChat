@@ -7,10 +7,7 @@ import eu.pb4.placeholders.api.TextParserUtils;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
-import eu.pb4.placeholders.api.parsers.LegacyFormattingParser;
-import eu.pb4.placeholders.api.parsers.MarkdownLiteParserV1;
-import eu.pb4.placeholders.api.parsers.NodeParser;
-import eu.pb4.placeholders.api.parsers.TextParserV1;
+import eu.pb4.placeholders.api.parsers.*;
 import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.playerdata.api.storage.JsonDataStorage;
 import eu.pb4.styledchat.config.ChatStyle;
@@ -63,7 +60,7 @@ public final class StyledChatUtils {
 
     public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
     public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
-    public static final Pattern EMOTE_PATTERN = Pattern.compile("[:](?<id>[^:]+)[:]");
+    public static final Pattern EMOTE_PATTERN = Pattern.compile("(?<!((?<!(\\\\))\\\\))[:](?<id>[^:]+)[:]");;
     public static final Text EMPTY_TEXT = Text.empty();
     private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
 
@@ -113,6 +110,10 @@ public final class StyledChatUtils {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.SPOILER);
             }
 
+            if (base.getTagParser("link") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.URL);
+            }
+
             if (!form.isEmpty()) {
                 list.add(new MarkdownLiteParserV1(SpoilerNode::new, MarkdownLiteParserV1::defaultQuoteFormatting, form.toArray(new MarkdownLiteParserV1.MarkdownFormat[0])));
             }
@@ -131,6 +132,12 @@ public final class StyledChatUtils {
             if (!form.isEmpty() || color) {
                 list.add(new LegacyFormattingParser(color, form.toArray(new Formatting[0])));
             }
+        }
+
+        var emotes = getEmotes(context);
+
+        if (!emotes.isEmpty()) {
+            list.add(new PatternPlaceholderParser(EMOTE_PATTERN, emotes::get));
         }
 
         return NodeParser.merge(list);
@@ -173,21 +180,13 @@ public final class StyledChatUtils {
             input = StyledChatEvents.PRE_MESSAGE_CONTENT.invoker().onPreMessage(input, context);
         }
 
-        var emotes = getEmotes(context);
-
         var value = TextNode.asSingle(parser.parseNodes(new LiteralNode(input)));
 
         if (StyledChatMod.USE_FABRIC_API) {
             value = StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(value, context);
         }
 
-
-        var text = Placeholders.parseText(
-                value,
-                context,
-                EMOTE_PATTERN,
-                (id) -> emotes.containsKey(id) ? ((ctx, arg) -> PlaceholderResult.value(Placeholders.parseText(emotes.get(id), ctx))) : null
-        );
+        var text = value.toText(context);
 
         if (config.configData.formatting.allowModdedDecorators) {
             try {
