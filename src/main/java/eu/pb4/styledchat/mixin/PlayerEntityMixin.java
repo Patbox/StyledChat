@@ -1,6 +1,7 @@
 package eu.pb4.styledchat.mixin;
 
 import eu.pb4.styledchat.StyledChatStyles;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -11,16 +12,30 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
-public class PlayerEntityMixin {
+public abstract class PlayerEntityMixin {
     @Unique
-    private boolean ignoreNextCalls = false;
+    private Text styledChat$cachedName = Text.empty();
+
+    @Unique
+    private int styledChat$cachedAge = -1234568;
+
+    @Unique
+    private boolean styledChat$ignoreNextCalls = false;
 
     @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
     private void styledChat_replaceDisplayName(CallbackInfoReturnable<Text> cir) {
-        if (!this.ignoreNextCalls && ((Object) this) instanceof ServerPlayerEntity player) {
-            this.ignoreNextCalls = true;
-            cir.setReturnValue(StyledChatStyles.getDisplayName(player, cir.getReturnValue()));
-            this.ignoreNextCalls = false;
+        if (!this.styledChat$ignoreNextCalls && ((Object) this).getClass() == ServerPlayerEntity.class) {
+            if (this.styledChat$cachedAge == ((Entity) (Object) this).age) {
+                cir.setReturnValue(this.styledChat$cachedName);
+                return;
+            }
+
+            this.styledChat$ignoreNextCalls = true;
+            var name = StyledChatStyles.getDisplayName((ServerPlayerEntity) (Object) this, cir.getReturnValue());
+            this.styledChat$ignoreNextCalls = false;
+            this.styledChat$cachedName = name;
+            this.styledChat$cachedAge = ((Entity) (Object) this).age;
+            cir.setReturnValue(name);
         }
     }
 }
