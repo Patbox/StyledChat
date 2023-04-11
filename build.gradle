@@ -26,7 +26,7 @@ repositories {
 	maven { url 'https://maven.nucleoid.xyz' }
 	//maven { url 'https://maven.gegy.dev' }
 	maven { url "https://api.modrinth.com/maven" }
-	//mavenLocal()
+	mavenLocal()
 }
 
 dependencies {
@@ -44,7 +44,7 @@ dependencies {
 	modCompileOnly fabricApi.module("fabric-message-api-v1", project.fabric_version)
 
 	modImplementation include("eu.pb4:predicate-api:0.1.0+1.19.3")
-	modImplementation include("eu.pb4:placeholder-api:2.0.0-rc.1+1.19.3")
+	modImplementation include("eu.pb4:placeholder-api:2.1.0+1.19.4")
 	modImplementation include("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
 	modImplementation include("eu.pb4:player-data-api:0.2.2+1.19.3")
 

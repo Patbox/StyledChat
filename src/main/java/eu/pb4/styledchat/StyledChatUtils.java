@@ -57,13 +57,13 @@ public final class StyledChatUtils {
 
     public static final TextParserV1.TextTag SPOILER_TEXT_TAG = TextParserV1.TextTag.of(SPOILER_TAG, List.of("hide"), "styledchat", true, SPOILER_TAG_HANDLER);
 
-
     public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
     public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
     public static final Pattern EMOTE_PATTERN = Pattern.compile("(?<!((?<!(\\\\))\\\\))[:](?<id>[^:]+)[:]");;
     public static final Text EMPTY_TEXT = Text.empty();
     private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
 
+    @Deprecated
     public static TextNode parseText(String input) {
         return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : EmptyNode.INSTANCE;
     }

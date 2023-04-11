@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(PlayerEntity.class)
+@Mixin(value = PlayerEntity.class, priority = 700)
 public abstract class PlayerEntityMixin {
     @Unique
     private Text styledChat$cachedName = Text.empty();
@@ -22,7 +22,7 @@ public abstract class PlayerEntityMixin {
     @Unique
     private boolean styledChat$ignoreNextCalls = false;
 
-    @Inject(method = "getDisplayName", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getDisplayName", at = @At("TAIL"), cancellable = true)
     private void styledChat_replaceDisplayName(CallbackInfoReturnable<Text> cir) {
         if (!this.styledChat$ignoreNextCalls && ((Object) this).getClass() == ServerPlayerEntity.class) {
             if (this.styledChat$cachedAge == ((Entity) (Object) this).age) {

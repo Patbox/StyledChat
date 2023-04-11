@@ -4,11 +4,16 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.TextNode;
+import eu.pb4.placeholders.api.parsers.NodeParser;
+import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
+import eu.pb4.placeholders.api.parsers.StaticPreParser;
+import eu.pb4.placeholders.api.parsers.TextParserV1;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
+import eu.pb4.styledchat.parser.DynamicNode;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.entity.passive.TameableEntity;
@@ -23,8 +28,12 @@ import java.util.Map;
 
 public class ChatStyle {
     public static final ChatStyle EMPTY = new ChatStyle(new ChatStyleData());
+    public static final NodeParser PARSER = NodeParser.merge(
+            TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
+            new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, DynamicNode::of),
+            StaticPreParser.INSTANCE
+    );
     public final MinecraftPredicate require;
-
     public final TextNode displayName;
     public final TextNode chat;
     public final TextNode join;
@@ -41,9 +50,7 @@ public class ChatStyle {
     public final TextNode teamChatReceived;
     public final TextNode sayCommand;
     public final TextNode meCommand;
-
     public final TextNode petDeath;
-
     public final TextNode spoilerStyle;
     public final String spoilerSymbol;
     public final TextNode linkStyle;
@@ -52,36 +59,35 @@ public class ChatStyle {
     public final Object2BooleanMap<String> formatting = new Object2BooleanOpenHashMap<>();
     public final Map<Identifier, TextNode> custom = new HashMap<>();
 
-
     public ChatStyle(ChatStyleData data, ChatStyle defaultStyle) {
         this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(0);
 
-        this.displayName = data.displayName != null ? StyledChatUtils.parseText(data.displayName.replace("%player:displayname%", "")) : defaultStyle.displayName;
+        this.displayName = data.displayName != null ? parseText(data.displayName) : defaultStyle.displayName;
 
-        this.chat = data.messages.chat != null ? StyledChatUtils.parseText(data.messages.chat) : defaultStyle.chat;
-        this.join = data.messages.joinedGame != null ? StyledChatUtils.parseText(data.messages.joinedGame) : defaultStyle.join;
-        this.joinFirstTime = data.messages.joinedForFirstTime != null ? StyledChatUtils.parseText(data.messages.joinedForFirstTime) : this.join;
-        this.joinRenamed = data.messages.joinedAfterNameChange != null ? StyledChatUtils.parseText(data.messages.joinedAfterNameChange) : defaultStyle.joinRenamed;
-        this.left = data.messages.leftGame != null ? StyledChatUtils.parseText(data.messages.leftGame) : defaultStyle.left;
-        this.death = data.messages.baseDeath != null ? StyledChatUtils.parseText(data.messages.baseDeath) : defaultStyle.death;
-        this.advancementTask = data.messages.advancementTask != null ? StyledChatUtils.parseText(data.messages.advancementTask) : defaultStyle.advancementTask;
-        this.advancementChallenge = data.messages.advancementChallenge != null ? StyledChatUtils.parseText(data.messages.advancementChallenge) : defaultStyle.advancementChallenge;
-        this.advancementGoal = data.messages.advancementGoal != null ? StyledChatUtils.parseText(data.messages.advancementGoal) : defaultStyle.advancementGoal;
-        this.privateMessageSent = data.messages.privateMessageSent != null ? StyledChatUtils.parseText(data.messages.privateMessageSent) : defaultStyle.privateMessageSent;
-        this.privateMessageReceived = data.messages.privateMessageReceived != null ? StyledChatUtils.parseText(data.messages.privateMessageReceived) : defaultStyle.privateMessageReceived;
-        this.teamChatSent = data.messages.sentTeamChat != null ? StyledChatUtils.parseText(data.messages.sentTeamChat) : defaultStyle.teamChatSent;
-        this.teamChatReceived = data.messages.receivedTeamChat != null ? StyledChatUtils.parseText(data.messages.receivedTeamChat) : defaultStyle.teamChatReceived;
-        this.sayCommand = data.messages.sayCommandMessage != null ? StyledChatUtils.parseText(data.messages.sayCommandMessage) : defaultStyle.sayCommand;
-        this.meCommand = data.messages.meCommandMessage != null ? StyledChatUtils.parseText(data.messages.meCommandMessage) : defaultStyle.meCommand;
-        this.petDeath = data.messages.petDeathMessage != null ? StyledChatUtils.parseText(data.messages.petDeathMessage) : defaultStyle.petDeath;
+        this.chat = data.messages.chat != null ? parseText(data.messages.chat) : defaultStyle.chat;
+        this.join = data.messages.joinedGame != null ? parseText(data.messages.joinedGame) : defaultStyle.join;
+        this.joinFirstTime = data.messages.joinedForFirstTime != null ? parseText(data.messages.joinedForFirstTime) : this.join;
+        this.joinRenamed = data.messages.joinedAfterNameChange != null ? parseText(data.messages.joinedAfterNameChange) : defaultStyle.joinRenamed;
+        this.left = data.messages.leftGame != null ? parseText(data.messages.leftGame) : defaultStyle.left;
+        this.death = data.messages.baseDeath != null ? parseText(data.messages.baseDeath) : defaultStyle.death;
+        this.advancementTask = data.messages.advancementTask != null ? parseText(data.messages.advancementTask) : defaultStyle.advancementTask;
+        this.advancementChallenge = data.messages.advancementChallenge != null ? parseText(data.messages.advancementChallenge) : defaultStyle.advancementChallenge;
+        this.advancementGoal = data.messages.advancementGoal != null ? parseText(data.messages.advancementGoal) : defaultStyle.advancementGoal;
+        this.privateMessageSent = data.messages.privateMessageSent != null ? parseText(data.messages.privateMessageSent) : defaultStyle.privateMessageSent;
+        this.privateMessageReceived = data.messages.privateMessageReceived != null ? parseText(data.messages.privateMessageReceived) : defaultStyle.privateMessageReceived;
+        this.teamChatSent = data.messages.sentTeamChat != null ? parseText(data.messages.sentTeamChat) : defaultStyle.teamChatSent;
+        this.teamChatReceived = data.messages.receivedTeamChat != null ? parseText(data.messages.receivedTeamChat) : defaultStyle.teamChatReceived;
+        this.sayCommand = data.messages.sayCommandMessage != null ? parseText(data.messages.sayCommandMessage) : defaultStyle.sayCommand;
+        this.meCommand = data.messages.meCommandMessage != null ? parseText(data.messages.meCommandMessage) : defaultStyle.meCommand;
+        this.petDeath = data.messages.petDeathMessage != null ? parseText(data.messages.petDeathMessage) : defaultStyle.petDeath;
 
-        this.spoilerStyle = data.spoilerStyle != null ? StyledChatUtils.parseText(data.spoilerStyle) : defaultStyle.spoilerStyle;
+        this.spoilerStyle = data.spoilerStyle != null ? parseText(data.spoilerStyle) : defaultStyle.spoilerStyle;
         this.spoilerSymbol = data.spoilerSymbol != null ? data.spoilerSymbol : defaultStyle.spoilerSymbol;
-        this.linkStyle = data.linkStyle != null ? StyledChatUtils.parseText(data.linkStyle) : defaultStyle.linkStyle;
-        this.mentionStyle = data.mentionStyle != null ? StyledChatUtils.parseText(data.mentionStyle) : defaultStyle.mentionStyle;
+        this.linkStyle = data.linkStyle != null ? parseText(data.linkStyle) : defaultStyle.linkStyle;
+        this.mentionStyle = data.mentionStyle != null ? parseText(data.mentionStyle) : defaultStyle.mentionStyle;
 
         for (var emoticon : data.emoticons.entrySet()) {
-            this.emoticons.put(emoticon.getKey(), StyledChatUtils.parseText(emoticon.getValue()));
+            this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
         }
 
         for (var formatting : data.formatting.entrySet()) {
@@ -93,7 +99,7 @@ public class ChatStyle {
                 var id = Identifier.tryParse(entry.getKey());
 
                 if (id != null) {
-                    this.custom.put(id, StyledChatUtils.parseText(entry.getValue()));
+                    this.custom.put(id, parseText(entry.getValue()));
                 }
             }
         }
@@ -102,31 +108,31 @@ public class ChatStyle {
     public ChatStyle(ChatStyleData data) {
         this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(0);
 
-        this.displayName = data.displayName != null ? StyledChatUtils.parseText(data.displayName.replace("%player:displayname%", "")) : null;
-        this.chat = data.messages.chat != null ? StyledChatUtils.parseText(data.messages.chat) : null;
-        this.join = data.messages.joinedGame != null ? StyledChatUtils.parseText(data.messages.joinedGame) : null;
-        this.joinRenamed = data.messages.joinedAfterNameChange != null ? StyledChatUtils.parseText(data.messages.joinedAfterNameChange) : null;
-        this.joinFirstTime = data.messages.joinedForFirstTime != null ? StyledChatUtils.parseText(data.messages.joinedForFirstTime) : null;
-        this.left = data.messages.leftGame != null ? StyledChatUtils.parseText(data.messages.leftGame) : null;
-        this.death = data.messages.baseDeath != null ? StyledChatUtils.parseText(data.messages.baseDeath) : null;
-        this.advancementTask = data.messages.advancementTask != null ? StyledChatUtils.parseText(data.messages.advancementTask) : null;
-        this.advancementChallenge = data.messages.advancementChallenge != null ? StyledChatUtils.parseText(data.messages.advancementChallenge) : null;
-        this.advancementGoal = data.messages.advancementGoal != null ? StyledChatUtils.parseText(data.messages.advancementGoal) : null;
-        this.privateMessageSent = data.messages.privateMessageSent != null ? StyledChatUtils.parseText(data.messages.privateMessageSent) : null;
-        this.privateMessageReceived = data.messages.privateMessageReceived != null ? StyledChatUtils.parseText(data.messages.privateMessageReceived) : null;
-        this.teamChatSent = data.messages.sentTeamChat != null ? StyledChatUtils.parseText(data.messages.sentTeamChat) : null;
-        this.teamChatReceived = data.messages.receivedTeamChat != null ? StyledChatUtils.parseText(data.messages.receivedTeamChat) : null;
-        this.sayCommand = data.messages.sayCommandMessage != null ? StyledChatUtils.parseText(data.messages.sayCommandMessage) : null;
-        this.meCommand = data.messages.meCommandMessage != null ? StyledChatUtils.parseText(data.messages.meCommandMessage) : null;
-        this.petDeath = data.messages.petDeathMessage != null ? StyledChatUtils.parseText(data.messages.petDeathMessage) : null;
+        this.displayName = data.displayName != null ? parseText(data.displayName) : null;
+        this.chat = data.messages.chat != null ? parseText(data.messages.chat) : null;
+        this.join = data.messages.joinedGame != null ? parseText(data.messages.joinedGame) : null;
+        this.joinRenamed = data.messages.joinedAfterNameChange != null ? parseText(data.messages.joinedAfterNameChange) : null;
+        this.joinFirstTime = data.messages.joinedForFirstTime != null ? parseText(data.messages.joinedForFirstTime) : null;
+        this.left = data.messages.leftGame != null ? parseText(data.messages.leftGame) : null;
+        this.death = data.messages.baseDeath != null ? parseText(data.messages.baseDeath) : null;
+        this.advancementTask = data.messages.advancementTask != null ? parseText(data.messages.advancementTask) : null;
+        this.advancementChallenge = data.messages.advancementChallenge != null ? parseText(data.messages.advancementChallenge) : null;
+        this.advancementGoal = data.messages.advancementGoal != null ? parseText(data.messages.advancementGoal) : null;
+        this.privateMessageSent = data.messages.privateMessageSent != null ? parseText(data.messages.privateMessageSent) : null;
+        this.privateMessageReceived = data.messages.privateMessageReceived != null ? parseText(data.messages.privateMessageReceived) : null;
+        this.teamChatSent = data.messages.sentTeamChat != null ? parseText(data.messages.sentTeamChat) : null;
+        this.teamChatReceived = data.messages.receivedTeamChat != null ? parseText(data.messages.receivedTeamChat) : null;
+        this.sayCommand = data.messages.sayCommandMessage != null ? parseText(data.messages.sayCommandMessage) : null;
+        this.meCommand = data.messages.meCommandMessage != null ? parseText(data.messages.meCommandMessage) : null;
+        this.petDeath = data.messages.petDeathMessage != null ? parseText(data.messages.petDeathMessage) : null;
 
-        this.spoilerStyle = data.spoilerStyle != null ? StyledChatUtils.parseText(data.spoilerStyle) : null;
+        this.spoilerStyle = data.spoilerStyle != null ? parseText(data.spoilerStyle) : null;
         this.spoilerSymbol = data.spoilerSymbol != null ? data.spoilerSymbol : null;
-        this.linkStyle = data.linkStyle != null ? StyledChatUtils.parseText(data.linkStyle) : null;
-        this.mentionStyle = data.mentionStyle != null ? StyledChatUtils.parseText(data.mentionStyle) : null;
+        this.linkStyle = data.linkStyle != null ? parseText(data.linkStyle) : null;
+        this.mentionStyle = data.mentionStyle != null ? parseText(data.mentionStyle) : null;
 
         for (var emoticon : data.emoticons.entrySet()) {
-            this.emoticons.put(emoticon.getKey(), StyledChatUtils.parseText(emoticon.getValue()));
+            this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
         }
 
         for (var formatting : data.formatting.entrySet()) {
@@ -138,10 +144,14 @@ public class ChatStyle {
                 var id = Identifier.tryParse(entry.getKey());
 
                 if (id != null) {
-                    this.custom.put(id, StyledChatUtils.parseText(entry.getValue()));
+                    this.custom.put(id, parseText(entry.getValue()));
                 }
             }
         }
+    }
+
+    private static TextNode parseText(String input) {
+        return !input.isEmpty() ? PARSER.parseNode(input) : EmptyNode.INSTANCE;
     }
 
 
@@ -151,17 +161,9 @@ public class ChatStyle {
         } else if (this.displayName == EmptyNode.INSTANCE) {
             return vanillaDisplayName;
         }
-        var context = PlaceholderContext.of(player);
+        var context = PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("vanillaDisplayName", vanillaDisplayName, "player", vanillaDisplayName, "default", vanillaDisplayName, "name", player.getName()));
 
-        return Placeholders.parseText(
-                this.displayName,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("vanillaDisplayName", vanillaDisplayName,
-                        "player", vanillaDisplayName,
-                        "default", vanillaDisplayName,
-                        "name", player.getName())
-        );
+        return this.displayName.toText(context);
     }
 
     @Nullable
@@ -171,15 +173,10 @@ public class ChatStyle {
         } else if (this.chat == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(
-                this.chat,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "message", message)
-        );
+
+        return this.chat.toText(PlaceholderContext.of(player)
+                .asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "message", message)));
     }
 
     @Nullable
@@ -189,14 +186,8 @@ public class ChatStyle {
         } else if (this.join == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(
-                this.join,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName())
-        );
+        return this.join.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
     }
 
     @Nullable
@@ -206,13 +197,8 @@ public class ChatStyle {
         } else if (this.joinFirstTime == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.joinFirstTime,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName())
-        );
+        return this.joinFirstTime.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
     }
 
     @Nullable
@@ -222,13 +208,8 @@ public class ChatStyle {
         } else if (this.joinRenamed == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.joinRenamed, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "old_name", Text.literal(oldName))
-        );
+        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "old_name", Text.literal(oldName))));
     }
 
     @Nullable
@@ -238,12 +219,8 @@ public class ChatStyle {
         } else if (this.left == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.left, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName())
-        );
+        return this.left.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
     }
 
     @Nullable
@@ -253,13 +230,8 @@ public class ChatStyle {
         } else if (this.death == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.death, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "default_message", vanillaMessage)
-        );
+        return this.death.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "default_message", vanillaMessage)));
     }
 
     @Nullable
@@ -269,13 +241,8 @@ public class ChatStyle {
         } else if (this.advancementGoal == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.advancementGoal, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "advancement", advancement)
-        );
+        return this.advancementGoal.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
     }
 
     @Nullable
@@ -285,13 +252,8 @@ public class ChatStyle {
         } else if (this.advancementTask == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.advancementTask, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "advancement", advancement)
-        );
+        return this.advancementTask.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
     }
 
     @Nullable
@@ -301,13 +263,8 @@ public class ChatStyle {
         } else if (this.advancementChallenge == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
-        var context = PlaceholderContext.of(player);
 
-        return Placeholders.parseText(this.advancementChallenge, context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("player", player.getDisplayName(),
-                        "advancement", advancement)
-        );
+        return this.advancementChallenge.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
     }
 
     @Nullable
@@ -318,24 +275,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        try {
-            var player = source.getPlayer();
-            return Placeholders.parseText(
-                    Placeholders.parseText(this.sayCommand, PlaceholderContext.of(player)),
-                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                    Map.of("player", player.getDisplayName(),
-                            "displayName", source.getDisplayName(),
-                            "message", message)
-            );
-        } catch (Exception e) {
-            return Placeholders.parseText(
-                    Placeholders.parseText(this.sayCommand, PlaceholderContext.of(source.getServer())),
-                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                    Map.of("player", source.getDisplayName(),
-                            "displayName", source.getDisplayName(),
-                            "message", message)
-            );
-        }
+        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES,  Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
     }
 
     @Nullable
@@ -346,24 +286,8 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        try {
-            var player = source.getPlayer();
-            return Placeholders.parseText(
-                    Placeholders.parseText(this.meCommand, PlaceholderContext.of(player)),
-                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                    Map.of("player", player.getDisplayName(),
-                            "displayName", source.getDisplayName(),
-                            "message", message)
-            );
-        } catch (Exception e) {
-            return Placeholders.parseText(
-                    Placeholders.parseText(this.meCommand, PlaceholderContext.of(source.getServer())),
-                    Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                    Map.of("player", source.getDisplayName(),
-                            "displayName", source.getDisplayName(),
-                            "message", message)
-            );
-        }
+        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES,  Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
+
     }
 
     @Nullable
@@ -374,14 +298,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return Placeholders.parseText(
-                this.privateMessageSent,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("sender", sender,
-                        "receiver", receiver,
-                        "message", message)
-        );
+        return this.privateMessageSent.toText(context.asParserContext().with(DynamicNode.NODES, Map.of("sender", sender, "receiver", receiver, "message", message)));
     }
 
     @Nullable
@@ -392,14 +309,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return Placeholders.parseText(
-                this.privateMessageReceived,
-                context,
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("sender", sender,
-                        "receiver", receiver,
-                        "message", message)
-        );
+        return this.privateMessageReceived.toText(context.asParserContext().with(DynamicNode.NODES, Map.of("sender", sender, "receiver", receiver, "message", message)));
     }
 
     @Nullable
@@ -410,14 +320,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return Placeholders.parseText(
-                this.teamChatSent,
-                PlaceholderContext.of(context),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("team", team,
-                        "displayName", displayName,
-                        "message", message)
-        );
+        return this.teamChatSent.toText(PlaceholderContext.of(context).asParserContext().with(DynamicNode.NODES, Map.of("team", team, "displayName", displayName, "message", message)));
     }
 
     @Nullable
@@ -428,14 +331,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return Placeholders.parseText(
-                this.teamChatReceived,
-                PlaceholderContext.of(context),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("team", team,
-                        "displayName", displayName,
-                        "message", message)
-        );
+        return this.teamChatReceived.toText(PlaceholderContext.of(context).asParserContext().with(DynamicNode.NODES, Map.of("team", team, "displayName", displayName, "message", message)));
     }
 
     @Nullable
@@ -448,14 +344,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return Placeholders.parseText(
-                node,
-                PlaceholderContext.of(source),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("receiver", receiver == null ? Text.empty() : receiver,
-                        "displayName", displayName,
-                        "message", message)
-        );
+        return node.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("receiver", receiver == null ? Text.empty() : receiver, "displayName", displayName, "message", message)));
     }
 
     @Nullable
@@ -483,12 +372,6 @@ public class ChatStyle {
             return null;
         }
 
-        return Placeholders.parseText(
-                this.petDeath,
-                PlaceholderContext.of(entity),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("pet", entity.getDisplayName(),
-                        "default_message", vanillaMessage)
-        );
+        return this.petDeath.toText(PlaceholderContext.of(entity).asParserContext().with(DynamicNode.NODES, Map.of("pet", entity.getDisplayName(), "default_message", vanillaMessage)));
     }
 }
