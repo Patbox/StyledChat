@@ -1,14 +1,19 @@
 package eu.pb4.styledchat.parser;
 
+import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.node.DirectTextNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.parent.ClickActionNode;
+import eu.pb4.placeholders.api.node.parent.ParentNode;
 import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import eu.pb4.placeholders.api.parsers.NodeParser;
 import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -41,7 +46,11 @@ public record LinkParser(TextNode style) implements NodeParser {
                     list.add(new LiteralNode(betweenText));
                 }
 
-                list.add(new ClickActionNode(Placeholders.parseNodes(style, Placeholders.PREDEFINED_PLACEHOLDER_PATTERN, Map.of("link", Text.literal(matcher.group()))).getChildren(), ClickEvent.Action.OPEN_URL, new LiteralNode(matcher.group())));
+                var link = matcher.group();
+
+                var text = style.toText(ParserContext.of(DynamicNode.NODES, Map.of("url", Text.literal(link), "link", Text.literal(link))));
+
+                list.add(new DirectTextNode(Text.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link)))));
 
                 currentPos = matcher.end();
             }
@@ -54,14 +63,14 @@ public record LinkParser(TextNode style) implements NodeParser {
             }
 
             return list.toArray(new TextNode[0]);
-        } else if (node instanceof ParentTextNode parentTextNode) {
+        } else if (node instanceof ParentNode parentNode) {
             var list = new ArrayList<TextNode>();
 
-            for (var child : parentTextNode.getChildren()) {
+            for (var child : parentNode.getChildren()) {
                 list.addAll(List.of(this.parseNodes(child)));
             }
 
-            return new TextNode[] { parentTextNode.copyWith(list.toArray(new TextNode[0])) };
+            return new TextNode[] { parentNode.copyWith(list.toArray(new TextNode[0])) };
         }
 
         return new TextNode[] { node };

@@ -2,6 +2,7 @@ package eu.pb4.styledchat.parser;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.node.DirectTextNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.parent.ParentTextNode;
@@ -43,7 +44,7 @@ public record MentionParser(TextNode style, PlaceholderContext context) implemen
             if (startPos != -1) {
                 int endPos = startPos + player.getEntityName().length();
                 TextNode[] before = parseInput(input.substring(0, startPos));
-                TextNode mention = TextNode.convert(Placeholders.parseText(style, PlaceholderContext.of(player)));
+                TextNode mention = new DirectTextNode(style.toText(PlaceholderContext.of(player)));
                 TextNode[] after = parseInput(input.substring(Math.min(endPos, input.length())));
                 return Stream.of(before, new TextNode[]{mention}, after).flatMap(Stream::of).toArray(TextNode[]::new);
             }

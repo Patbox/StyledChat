@@ -22,12 +22,9 @@ public class SpoilerNode extends ParentNode {
     protected Text applyFormatting(MutableText out, ParserContext context) {
         var config = ConfigManager.getConfig();
         var ctx = context.get(PlaceholderContext.KEY);
-        var obj = ((MutableText) Placeholders.parseText(config.getSpoilerStyle(ctx),
-                Placeholders.PREDEFINED_PLACEHOLDER_PATTERN,
-                Map.of("spoiler", Text.literal(config.getSpoilerSymbole(ctx).repeat(out.getString().length())))
-        ));
-
-        return obj.setStyle(obj.getStyle().withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, out)));
+        var obj = config.getSpoilerStyle(ctx).toText(ctx.asParserContext()
+                .with(DynamicNode.NODES, Map.of("spoiler", Text.literal(config.getSpoilerSymbole(ctx).repeat(out.getString().length())))));
+        return Text.empty().append(obj).setStyle(obj.getStyle().withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, out)));
     }
 
     @Override
