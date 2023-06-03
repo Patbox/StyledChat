@@ -19,6 +19,9 @@
   "entrypoints": {
     "main": [
       "eu.pb4.styledchat.StyledChatMod"
+    ],
+    "preLaunch": [
+      "eu.pb4.styledchat.CardboardWarning"
     ]
   },
   "mixins": [
@@ -26,7 +29,7 @@
   ],
 
   "depends": {
-    "minecraft": ">=1.19.1-beta.2"
+    "minecraft": ">=1.20-"
   },
   "custom": {
     "modmenu": {

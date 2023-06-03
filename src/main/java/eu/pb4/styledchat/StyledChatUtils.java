@@ -342,7 +342,7 @@ public final class StyledChatUtils {
                 ? baseInput
                 : maybeFormatFor(source, ext.styledChat_getOriginal(), message.getContent());
 
-        if (baseInput == null) {
+        if (baseInput == StyledChatUtils.EMPTY_TEXT) {
             ext.styledChat_setArg("base_input", input);
         }
 
@@ -418,8 +418,8 @@ public final class StyledChatUtils {
         var ext = (ExtSignedMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");
-        var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
-        if (baseInput == null) {
+        var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
+        if (baseInput == StyledChatUtils.EMPTY_TEXT) {
             ext.styledChat_setArg("base_input", input);
         }
 

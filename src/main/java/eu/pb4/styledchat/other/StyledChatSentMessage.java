@@ -42,7 +42,7 @@ public interface StyledChatSentMessage extends SentMessage {
                     var baseInput = ExtSignedMessage.getArg(signedMessage, "base_input");
                     var source = ExtSignedMessage.of(signedMessage).styledChat_getSource();
 
-                    var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY
+                    var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY
                             ? baseInput
                             : signedMessage.getContent();
 
@@ -73,7 +73,7 @@ public interface StyledChatSentMessage extends SentMessage {
                 var baseInput = ExtSignedMessage.getArg(message, "base_input");
                 var source = ExtSignedMessage.of(message).styledChat_getSource();
 
-                var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY
+                var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY
                         ? baseInput
                         : message.getContent();
 

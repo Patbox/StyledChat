@@ -28,7 +28,7 @@ public class TeamMsgCommandMixin {
     private static void styledChat_formatOgText(ServerCommandSource serverCommandSource, Entity entity, Team team, List<ServerPlayerEntity> list, SignedMessage signedMessage, CallbackInfo ci) {
         var input = ExtSignedMessage.getArg(signedMessage, "base_input");
 
-        if (input == null) {
+        if (input == StyledChatUtils.EMPTY_TEXT) {
             input = StyledChatUtils.formatFor(serverCommandSource, ((ExtSignedMessage) (Object) signedMessage).styledChat_getOriginal());
             ExtSignedMessage.setArg(signedMessage,"base_input", input);
         }

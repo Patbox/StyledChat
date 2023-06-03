@@ -104,17 +104,17 @@ public class Commands {
         var data = StyledChatUtils.getPersonalData(player);
 
         if (data == null) {
-            context.getSource().sendFeedback(Text.literal("<not set>").formatted(Formatting.ITALIC), false);
+            context.getSource().sendFeedback(() -> Text.literal("<not set>").formatted(Formatting.ITALIC), false);
             return 0;
         } else {
             var val = propertyGetSet.get(data);
 
             if (val == null) {
-                context.getSource().sendFeedback(Text.literal("<not set>").formatted(Formatting.ITALIC), false);
+                context.getSource().sendFeedback(() -> Text.literal("<not set>").formatted(Formatting.ITALIC), false);
                 return 0;
             }
 
-            context.getSource().sendFeedback(Text.literal(val), false);
+            context.getSource().sendFeedback(() -> Text.literal(val), false);
             return 1;
         }
     }
@@ -126,7 +126,7 @@ public class Commands {
             propertySet.set(StyledChatUtils.getOrCreatePersonalData(player), val);
             StyledChatUtils.updateStyle(player);
         }
-        context.getSource().sendFeedback(Text.literal("Changed style of " + players.size() + " player(s)"), false);
+        context.getSource().sendFeedback(() -> Text.literal("Changed style of " + players.size() + " player(s)"), false);
         return players.size();
     }
 
@@ -140,7 +140,7 @@ public class Commands {
             }
             StyledChatUtils.updateStyle(player);
         }
-        context.getSource().sendFeedback(Text.literal("Cleared style for " + players.size() + " player(s)"), false);
+        context.getSource().sendFeedback(() -> Text.literal("Cleared style for " + players.size() + " player(s)"), false);
         return players.size();
     }
 
@@ -172,7 +172,7 @@ public class Commands {
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
         if (ConfigManager.loadConfig()) {
-            context.getSource().sendFeedback(Text.literal("Reloaded config!"), false);
+            context.getSource().sendFeedback(() -> Text.literal("Reloaded config!"), false);
 
             for (var player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
                 StyledChatUtils.sendAutocompliton(player);
@@ -185,7 +185,7 @@ public class Commands {
 
     private static int about(CommandContext<ServerCommandSource> context) {
         for (var text : context.getSource().getEntity() instanceof ServerPlayerEntity ? GenericModInfo.getAboutFull() : GenericModInfo.getAboutConsole()) {
-            context.getSource().sendFeedback(text, false);
+            context.getSource().sendFeedback(() -> text, false);
         }
 
 
