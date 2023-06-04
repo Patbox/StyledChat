@@ -128,7 +128,7 @@ curseforge {
 			releaseType = "release"
 			changelog = System.getenv("CHANGELOG")
 			changelogType = "markdown"
-			addGameVersion ((String) project.minecraft_version.split("-")[0])
+			addGameVersion((project.minecraft_version.contains("-") ? ((String) project.minecraft_version.split("-")[0] + "-Snapshot") : project.minecraft_version))
 			addGameVersion "Fabric"
 			addGameVersion "Quilt"
 			mainArtifact(remapJar)
