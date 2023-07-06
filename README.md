@@ -1,4 +1,4 @@
-![Logo](https://i.imgur.com/DC12A5i.png)
+![Logo](https://i.imgur.com/QxkDhm0.png)
 # Styled Chat
 It's a simple mod that allows server owners to change how their chat looks!
 
@@ -146,7 +146,17 @@ Additionally, every message type has few own local variables.
       "shears": "✂",
       "pos": "%player:pos_x% %player:pos_y% %player:pos_z%",
       "fire": "🔥",
-      "table": "(╯°□°）╯︵ ┻━┻"
+      "table": "(╯°□°）╯︵ ┻━┻",
+      // Since 2.2.1+1.20.1 you can also import from files, using this syntax.
+      "$emojibase:builtin:joypixels": "${emoji}",
+      // value is the same as in others, just ${emoji} is replaced with read emojis (so you can apply fonts for example)
+      // Format looks like this $TYPE:SOURCE:PATH
+      // TYPE is "emojibase" for Emojibase.dev shorthand, "cldr" for Unicode cldr-json annotation 
+      //      or "default" for same style as this file (excluding imports)
+      // SOURCE points what type of storage it is, where PATH targets the file
+      //     "builtin" loads it from json bundled with mod ("joypixels" or "emojibase")
+      //     "from_file" loads it from file relative to config dir (for example "emoji.json" points to "[SERVER]/config/emoji.json)
+      
     }
   },
   // List of styles with some requirements, applied from top do bottom

@@ -1,7 +1,6 @@
 package eu.pb4.styledchat;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
-import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.TextParserUtils;
 import eu.pb4.placeholders.api.node.EmptyNode;
@@ -426,9 +425,14 @@ public final class StyledChatUtils {
         return new SignedMessage(message.link(), null, MessageBody.ofUnsigned(message.getSignedContent()), input, null);
     }
 
+    @Deprecated(forRemoval = true)
     public static void sendAutocompliton(ServerPlayerEntity player) {
+        sendAutoCompletion(player, ConfigManager.getConfig().allPossibleAutoCompletionKeys);
+    }
+
+    public static void sendAutoCompletion(ServerPlayerEntity player, Collection<String> oldAutoCompletion) {
         var config = ConfigManager.getConfig();
-        player.networkHandler.sendPacket(new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(config.allPossibleAutoCompletionKeys)));
+        player.networkHandler.sendPacket(new ChatSuggestionsS2CPacket(ChatSuggestionsS2CPacket.Action.REMOVE, new ArrayList<>(oldAutoCompletion)));
 
         var set = new HashSet<String>();
 

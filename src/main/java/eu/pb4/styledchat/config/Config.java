@@ -27,22 +27,25 @@ public final class Config {
     public Config(ConfigData data) {
         this.configData = data;
         this.defaultStyle = new ChatStyle(data.defaultStyle, new ChatStyle(ChatStyleData.DEFAULT));
-
         this.permissionStyle = new ArrayList<>();
 
         this.allPossibleAutoCompletionKeys = new HashSet<>();
+
+        for (var key : this.defaultStyle.emoticons.keySet()) {
+            this.allPossibleAutoCompletionKeys.add(":" + key + ":");
+        }
 
         for (var entry : data.permissionStyles) {
             if (entry.require == null) {
                 entry.require = BuiltinPredicates.operatorLevel(4);
             }
 
-            this.permissionStyle.add(new ChatStyle(entry));
+            var style = new ChatStyle(entry);
+            this.permissionStyle.add(style);
 
-            for (var key : entry.emoticons.keySet()) {
+            for (var key : style.emoticons.keySet()) {
                 this.allPossibleAutoCompletionKeys.add(":" + key + ":");
             }
-
         }
 
 

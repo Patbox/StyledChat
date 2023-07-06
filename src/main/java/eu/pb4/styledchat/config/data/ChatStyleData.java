@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,7 +38,7 @@ public class ChatStyleData implements Cloneable {
     public Map<String, Boolean> formatting = new HashMap<>();
 
     @SerializedName("emoticons")
-    public Map<String, String> emoticons = new HashMap<>();
+    public LinkedHashMap<String, String> emoticons = new LinkedHashMap<>();
 
     @SerializedName("custom_message_types")
     public Map<String, String> custom = new HashMap<>();
@@ -90,7 +91,7 @@ public class ChatStyleData implements Cloneable {
             var base = (ChatStyleData) super.clone();
             base.messages = this.messages.clone();
             base.formatting = new HashMap<>(this.formatting);
-            base.emoticons = new HashMap<>(this.emoticons);
+            base.emoticons = new LinkedHashMap(this.emoticons);
             base.custom = new HashMap<>(this.custom);
 
             return base;
@@ -155,11 +156,10 @@ public class ChatStyleData implements Cloneable {
         }
 
         {
+            data.emoticons.put("$emojibase:builtin:joypixels", "${emoji}");
             data.emoticons.put("shrug", "¯\\_(ツ)_/¯");
             data.emoticons.put("table", "(╯°□°）╯︵ ┻━┻");
-            data.emoticons.put("heart", "❤");
             data.emoticons.put("sword", "\uD83D\uDDE1");
-            data.emoticons.put("fire", "\uD83D\uDD25");
             data.emoticons.put("bow", "\uD83C\uDFF9");
             data.emoticons.put("trident", "\uD83D\uDD31");
             data.emoticons.put("rod", "\uD83C\uDFA3");

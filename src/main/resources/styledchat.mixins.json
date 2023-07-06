@@ -20,8 +20,7 @@
     "commands.MeCommandMixin",
     "commands.MessageCommandMixin",
     "commands.SayCommandMixin",
-    "commands.TeamMsgCommandMixin",
-    "compat.ServerMessageEventsMixin"
+    "commands.TeamMsgCommandMixin"
   ],
   "client": [
   ],

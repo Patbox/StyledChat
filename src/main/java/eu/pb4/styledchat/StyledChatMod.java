@@ -6,6 +6,7 @@ import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.other.GenericModInfo;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -18,8 +19,8 @@ import org.apache.logging.log4j.Logger;
 
 public class StyledChatMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger("Styled Chat");
-    public static MinecraftServer server = null;
-    public static String VERSION = FabricLoader.getInstance().getModContainer("styledchat").get().getMetadata().getVersion().getFriendlyString();
+	public static final ModContainer CONTAINER = FabricLoader.getInstance().getModContainer("styledchat").get();
+	public static MinecraftServer server = null;
 
 	public static boolean USE_FABRIC_API = true;
 
@@ -32,7 +33,7 @@ public class StyledChatMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		this.crabboardDetection();
-		GenericModInfo.build(FabricLoader.getInstance().getModContainer("styledchat").get());
+		GenericModInfo.build(CONTAINER);
 		PlayerDataApi.register(StyledChatUtils.PLAYER_DATA);
 		Placeholders.registerChangeEvent((id, removed) -> ConfigManager.clearCached());
 	}

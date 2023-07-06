@@ -2,6 +2,8 @@ package eu.pb4.styledchat.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import eu.pb4.predicate.api.GsonPredicateSerializer;
 import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.StyledChatMod;
@@ -19,6 +21,7 @@ public class ConfigManager {
 
     private static Config config = null;
     private static ConfigData configData = null;
+
 
     public static Config getConfig() {
         if (config == null) {
@@ -63,7 +66,7 @@ public class ConfigManager {
 
             configData = config;
             return true;
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             StyledChatMod.LOGGER.error("Something went wrong while reading config! Make sure format is correct!");
             exception.printStackTrace();
             if (configData == null) {
@@ -71,5 +74,30 @@ public class ConfigManager {
             }
             return false;
         }
+    }
+
+    public static JsonObject loadJson(String key) {
+        var path = FabricLoader.getInstance().getConfigDir().resolve(key);
+        if (Files.exists(path)) {
+            try {
+                return JsonParser.parseReader(Files.newBufferedReader(path)).getAsJsonObject();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return new JsonObject();
+    }
+
+    public static JsonObject loadJsonBuiltin(String baseValue) {
+        var path = StyledChatMod.CONTAINER.findPath("emoji/" + baseValue + ".json");
+        if (path.isPresent()) {
+            try {
+                return JsonParser.parseReader(Files.newBufferedReader(path.get())).getAsJsonObject();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return new JsonObject();
+
     }
 }

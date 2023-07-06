@@ -1,5 +1,6 @@
 package eu.pb4.styledchat.config;
 
+import com.google.gson.JsonObject;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.node.EmptyNode;
@@ -87,7 +88,11 @@ public class ChatStyle {
         this.mentionStyle = data.mentionStyle != null ? parseText(data.mentionStyle) : defaultStyle.mentionStyle;
 
         for (var emoticon : data.emoticons.entrySet()) {
-            this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
+            if (emoticon.getKey().startsWith("$")) {
+                decodeSpecialEmoticon(emoticon.getKey(), emoticon.getValue());
+            } else {
+                this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
+            }
         }
 
         for (var formatting : data.formatting.entrySet()) {
@@ -132,7 +137,11 @@ public class ChatStyle {
         this.mentionStyle = data.mentionStyle != null ? parseText(data.mentionStyle) : null;
 
         for (var emoticon : data.emoticons.entrySet()) {
-            this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
+            if (emoticon.getKey().startsWith("$")) {
+                decodeSpecialEmoticon(emoticon.getKey(), emoticon.getValue());
+            } else {
+                this.emoticons.put(emoticon.getKey(), parseText(emoticon.getValue()));
+            }
         }
 
         for (var formatting : data.formatting.entrySet()) {
@@ -154,6 +163,92 @@ public class ChatStyle {
         return !input.isEmpty() ? PARSER.parseNode(input) : EmptyNode.INSTANCE;
     }
 
+    private void decodeSpecialEmoticon(String baseKey, String baseValue) {
+        var parts = baseKey.substring(1).split(":", 3);
+        if (parts.length != 3) {
+            return;
+        }
+
+        JsonObject json;
+
+        if (parts[1].equals("from_file")) {
+            json = ConfigManager.loadJson(parts[2]);
+        } else if (parts[1].equals("builtin")) {
+            json = ConfigManager.loadJsonBuiltin(parts[2]);
+        } else {
+            return;
+        }
+
+        if (parts[0].equals("default")) {
+            try {
+                for (var entry : json.entrySet()) {
+                    this.emoticons.put(entry.getKey(),
+                            NodeParser.merge(
+                                    TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
+                                    new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> parseText(entry.getValue().getAsString())),
+                                    StaticPreParser.INSTANCE
+                            ).parseNode(baseValue)
+                    );
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        } else if (parts[0].equals("emojibase") || parts[1].equals("emojibase_unlocked")) {
+            try {
+                var validate = parts[0].equals("emojibase");
+
+                loopStart:
+                for (var entry : json.entrySet()) {
+                    var b = new StringBuilder();
+                    for (var x : entry.getKey().split("-")) {
+                        var i = Integer.parseInt(x, 16);
+
+                        if (validate && ((i >= 0x1F3FB && i <= 0x1F3FF) || i == 0xFE0F || i == 0x200D)) {
+                            continue loopStart;
+                        }
+                        b.appendCodePoint(Integer.parseInt(x, 16));
+                    }
+
+                    var output = NodeParser.merge(
+                            TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
+                            new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> TextNode.of(b.toString())),
+                            StaticPreParser.INSTANCE
+                    ).parseNode(baseValue);
+
+                    if (entry.getValue().isJsonArray()) {
+                        for (var x : entry.getValue().getAsJsonArray()) {
+                            this.emoticons.put(x.getAsString(), output);
+                        }
+                    } else {
+                        this.emoticons.put(entry.getValue().getAsString(), output);
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        } else if (parts[0].equals("cldr")) {
+            try {
+                json = json.getAsJsonObject("annotations").getAsJsonObject("annotations");
+
+                for (var entry : json.entrySet()) {
+                    try {
+                        var value = NodeParser.merge(
+                                TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
+                                new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> TextNode.of(entry.getKey())),
+                                StaticPreParser.INSTANCE
+                        ).parseNode(baseValue);
+                        for (var key : entry.getValue().getAsJsonObject().getAsJsonArray("default")) {
+                            this.emoticons.put(key.getAsString().replace(' ', '_').replace(':', '_'), value);
+                        }
+                    } catch (Throwable e) {
+
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
         if (this.displayName == null) {
@@ -275,7 +370,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES,  Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
+        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
     }
 
     @Nullable
@@ -286,7 +381,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES,  Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
+        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
 
     }
 

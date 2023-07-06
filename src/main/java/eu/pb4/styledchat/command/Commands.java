@@ -171,11 +171,12 @@ public class Commands {
     }
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
+        var old = ConfigManager.getConfig().allPossibleAutoCompletionKeys;
         if (ConfigManager.loadConfig()) {
             context.getSource().sendFeedback(() -> Text.literal("Reloaded config!"), false);
 
             for (var player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
-                StyledChatUtils.sendAutocompliton(player);
+                StyledChatUtils.sendAutoCompletion(player, old);
             }
         } else {
             context.getSource().sendError(Text.literal("Error occurred while reloading config! Check console for more information!").formatted(Formatting.RED));

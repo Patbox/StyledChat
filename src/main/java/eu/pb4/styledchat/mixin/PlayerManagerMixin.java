@@ -2,6 +2,7 @@ package eu.pb4.styledchat.mixin;
 
 import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.StyledChatUtils;
+import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageType;
@@ -58,7 +59,7 @@ public class PlayerManagerMixin {
 
     @Inject(method = "sendCommandTree(Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("HEAD"))
     private void styledChat_sendTree(ServerPlayerEntity player, CallbackInfo ci) {
-        StyledChatUtils.sendAutocompliton(player);
+        StyledChatUtils.sendAutoCompletion(player, ConfigManager.getConfig().allPossibleAutoCompletionKeys);
     }
 
     @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/network/message/MessageType$Parameters;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageType$Parameters;Ljava/lang/String;)V"), require = 0)

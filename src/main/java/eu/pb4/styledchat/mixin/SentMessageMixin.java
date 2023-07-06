@@ -17,7 +17,7 @@ public interface SentMessageMixin {
     @Inject(method = "of", at = @At("HEAD"), cancellable = true)
     private static void styledChat$patchStyle(SignedMessage message, CallbackInfoReturnable<SentMessage> cir) {
         var override = ((ExtSignedMessage) (Object) message).styledChat_getArg("override");
-        if (override != null && StyledChatMod.server != null) {
+        if (override != StyledChatUtils.EMPTY_TEXT && StyledChatMod.server != null) {
             var type = ((ExtSignedMessage) (Object) message).styledChat_getType();
 
             if (message.isSenderMissing()) {
