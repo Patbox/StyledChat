@@ -44,7 +44,7 @@ public class Commands {
                         )
 
                         .then(literal("set")
-                                .requires(Permissions.require("styledchat.set", 3))
+                                .requires(Permissions.require("styledchat.set", 2))
                                 .then(fillWithProperties(argument("players", EntityArgumentType.players()),
                                         (x, p) -> x.then(argument("value", StringArgumentType.greedyString())
                                                 .executes((ctx) -> Commands.setProperty(ctx, p.apply(ctx)))
@@ -53,7 +53,7 @@ public class Commands {
                         )
 
                         .then(literal("get")
-                                .requires(Permissions.require("styledchat.get", 3))
+                                .requires(Permissions.require("styledchat.get", 2))
                                 .then(fillWithProperties(argument("player", EntityArgumentType.player()),
                                         (x, p) -> x.executes((ctx) -> Commands.getProperty(ctx, p.apply(ctx)))
                                 ))
