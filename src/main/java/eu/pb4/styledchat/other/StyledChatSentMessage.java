@@ -15,7 +15,7 @@ import net.minecraft.text.TextContent;
 
 import java.util.Objects;
 
-public interface StyledChatSentMessage extends SentMessage {
+public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage {
     Text override();
 
     SignedMessage message();
@@ -24,8 +24,12 @@ public interface StyledChatSentMessage extends SentMessage {
 
     RegistryKey<MessageType> sourceType();
 
-    record Chat(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType) implements StyledChatSentMessage {
+    @Override
+    default SignedMessage styledChat$message() {
+        return this.message();
+    }
 
+    record Chat(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType) implements StyledChatSentMessage {
         public Text getContent() {
             return message.unsignedContent();
         }

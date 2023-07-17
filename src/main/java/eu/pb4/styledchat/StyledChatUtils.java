@@ -413,6 +413,7 @@ public final class StyledChatUtils {
         }
     }
 
+    @Deprecated
     public static SignedMessage toEventMessage(SignedMessage message, PlaceholderContext context) {
         var ext = (ExtSignedMessage) (Object) message;
 

@@ -250,6 +250,7 @@ Additionally, you can enable markdown and legacy (&X) formatting in the config
       "dark_aqua": true
     },
     "emoticons": {
+      "$emojibase:builtin:joypixels": "${emoji}",
       "potion": "🧪",
       "trident": "🔱",
       "rod": "🎣",

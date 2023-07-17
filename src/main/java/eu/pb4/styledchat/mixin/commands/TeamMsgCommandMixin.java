@@ -3,9 +3,8 @@ package eu.pb4.styledchat.mixin.commands;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.StyledChatUtils;
-import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtSignedMessage;
-import eu.pb4.styledchat.other.StyledChatSentMessage;
+import eu.pb4.styledchat.other.ExtendedSentMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SentMessage;
@@ -36,24 +35,24 @@ public class TeamMsgCommandMixin {
 
     @Redirect(method = "execute", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;sendChatMessage(Lnet/minecraft/network/message/SentMessage;ZLnet/minecraft/network/message/MessageType$Parameters;)V"))
     private static void styledChat_replaceForSelf(ServerPlayerEntity instance, SentMessage message, boolean bl, MessageType.Parameters parameters, ServerCommandSource source) {
-        if (message instanceof StyledChatSentMessage styledChatSentMessage) {
+        if (message instanceof ExtendedSentMessage extSentMessage) {
             try {
                 if (source.getPlayer() == instance) {
                     var sent = StyledChatMod.getMessageType().params(StyledChatStyles.getTeamChatSent(
                             ((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                             source.getDisplayName(),
-                            ExtSignedMessage.getArg(styledChatSentMessage.message(), "base_input"), instance.getCommandSource()
+                            ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), instance.getCommandSource()
                     ));
 
-                    source.sendChatMessage(styledChatSentMessage.reformat(sent, MessageType.TEAM_MSG_COMMAND_OUTGOING), bl, sent);
+                    source.sendChatMessage(message, bl, sent);
                 } else {
                     var rex = StyledChatMod.getMessageType().params(StyledChatStyles.getTeamChatReceived(
                             ((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
                             source.getDisplayName(),
-                            ExtSignedMessage.getArg(styledChatSentMessage.message(), "base_input"), source
+                            ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), source
                     ));
 
-                    instance.sendChatMessage(styledChatSentMessage.reformat(rex,  MessageType.TEAM_MSG_COMMAND_INCOMING), bl, rex);
+                    instance.sendChatMessage(message, bl, rex);
                 }
                 return;
             } catch (Exception e) {
