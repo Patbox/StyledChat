@@ -8,6 +8,7 @@ import eu.pb4.styledchat.other.StyledChatSentMessage;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SentMessage;
 import net.minecraft.network.message.SignedMessage;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,9 +26,9 @@ public interface SentMessageMixin {
             var type = ((ExtSignedMessage) (Object) message).styledChat_getType();
 
             if (message.isSenderMissing()) {
-                cir.setReturnValue(new StyledChatSentMessage.System(message, override, StyledChatUtils.createParameters(override), type));
+                cir.setReturnValue(new StyledChatSentMessage.System(message, override, StyledChatUtils.createParameters(override), type, new MutableObject<>()));
             } else {
-                cir.setReturnValue(new StyledChatSentMessage.Chat(message, override, StyledChatUtils.createParameters(override), type));
+                cir.setReturnValue(new StyledChatSentMessage.Chat(message, override, StyledChatUtils.createParameters(override), type, new MutableObject<>()));
             }
         }
     }

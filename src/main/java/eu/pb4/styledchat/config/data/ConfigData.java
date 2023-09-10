@@ -24,8 +24,10 @@ public class ConfigData {
         public boolean parseMentionsInChat = false;
         @SerializedName("markdown")
         public boolean markdown = true;
-        @SerializedName("formatting_from_other_mods")
-        public boolean allowModdedDecorators = false;
+        //@SerializedName("formatting_from_other_mods")
+        //public boolean allowModdedDecorators = false;
+        @SerializedName("respect_colors_client_setting")
+        public boolean respectColors = true;
     }
 
     @SerializedName("auto_completion")

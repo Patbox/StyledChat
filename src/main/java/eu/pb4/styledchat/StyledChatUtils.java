@@ -7,6 +7,7 @@ import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.*;
+import eu.pb4.placeholders.impl.GeneralUtils;
 import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.playerdata.api.storage.JsonDataStorage;
 import eu.pb4.styledchat.config.ChatStyle;
@@ -27,7 +28,9 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TextContent;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public final class StyledChatUtils {
@@ -45,6 +49,7 @@ public final class StyledChatUtils {
     public static final String ITEM_KEY = "item";
     public static final String POS_KEY = "pos";
     public static final String SPOILER_TAG = "spoiler";
+    private static final Function<MutableText, MutableText> COLOR_CLEARING = (t) -> t.setStyle(t.getStyle().withColor((TextColor) null));
 
     public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class, ConfigManager.GSON);
 
@@ -187,7 +192,7 @@ public final class StyledChatUtils {
 
         var text = value.toText(context);
 
-        if (config.configData.formatting.allowModdedDecorators) {
+        if (config.configData.formatting.respectColors) {
             try {
                 text = context.server().getMessageDecorator().decorate(context.player(), text).get();
             } catch (Exception e) {
@@ -308,6 +313,15 @@ public final class StyledChatUtils {
     @Deprecated
     public static TextNode parseLinks(TextNode node, PlaceholderContext context) {
         return TextNode.asSingle(LinkParser.parse(node, context));
+    }
+
+    public static MessageType.Parameters removeColor(MessageType.Parameters parameters) {
+        return new MessageType.Parameters(parameters.type(), removeColor(parameters.name()), parameters.targetName());
+    }
+
+    public static Text removeColor(Text text) {
+        // Should expose this as a function is tpapi, but too lazt for now
+        return GeneralUtils.cloneTransformText(text, COLOR_CLEARING);
     }
 
     public static boolean isHandledByMod(RegistryKey<MessageType> typeKey) {

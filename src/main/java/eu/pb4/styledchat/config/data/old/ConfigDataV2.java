@@ -53,7 +53,7 @@ public class ConfigDataV2 {
 
         data.formatting.markdown = this.enableMarkdown;
         data.formatting.legacyChatFormatting = this.legacyChatFormatting;
-        data.formatting.allowModdedDecorators = this.allowModdedDecorators;
+        data.formatting.respectColors = this.allowModdedDecorators;
         data.formatting.parseLinksInChat = this.parseLinksInChat;
 
         var pairs = new ArrayList<Pair<PermissionPriorityStyle, PermissionEmotes>>();
