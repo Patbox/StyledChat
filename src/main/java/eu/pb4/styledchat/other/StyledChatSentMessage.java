@@ -32,7 +32,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
     }
 
     record Chat(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType, MutableObject<MessageType.Parameters> colorless) implements StyledChatSentMessage {
-        public Text getContent() {
+        public Text content() {
             return message.unsignedContent();
         }
 
@@ -74,7 +74,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
     }
 
     record System(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType, MutableObject<MessageType.Parameters> colorless) implements StyledChatSentMessage {
-        public Text getContent() {
+        public Text content() {
             return this.message.unsignedContent();
         }
 

@@ -15,7 +15,7 @@ public class PlayerAdvancementTrackerMixin {
 
     @Shadow private ServerPlayerEntity owner;
 
-    @ModifyArg(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
+    @ModifyArg(method = "method_53637", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_changeAdvancementMessage(Text text) {
         var translatableText = (TranslatableTextContent) text.getContent();
         Text advancement = (Text) translatableText.getArgs()[1];

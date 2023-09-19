@@ -7,10 +7,13 @@ import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.StyledChatUtils;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.c2s.play.ClientSettingsC2SPacket;
+import net.minecraft.network.packet.c2s.common.ClientOptionsC2SPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
@@ -31,31 +34,24 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Unique
     private ChatStyle styledChat$style;
-    @Unique
-    private boolean styledChat$chatColors = true;
 
-    @ModifyArg(method = "onDisconnected", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
+    @ModifyArg(method = "cleanUp", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     private Text styledChat_replaceDisconnectMessage(Text text) {
         return StyledChatStyles.getLeft(this.player);
     }
 
-    @Redirect(method = "method_44900", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageDecorator;decorate(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/text/Text;)Ljava/util/concurrent/CompletableFuture;"))
-    private CompletableFuture<Text> styledChat_replaceDecorator2(MessageDecorator instance, ServerPlayerEntity player, Text text) {
+    @Redirect(method = "method_44900", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageDecorator;decorate(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/text/Text;)Lnet/minecraft/text/Text;"))
+    private Text styledChat_replaceDecorator2(MessageDecorator instance, ServerPlayerEntity player, Text text) {
         if (player != null) {
-            return CompletableFuture.completedFuture(StyledChatUtils.formatFor(PlaceholderContext.of(player), text.getString()));
+            return StyledChatUtils.formatFor(PlaceholderContext.of(player), text.getString());
         } else {
-            return CompletableFuture.completedFuture(StyledChatUtils.formatFor(PlaceholderContext.of(StyledChatMod.server), text.getString()));
+            return StyledChatUtils.formatFor(PlaceholderContext.of(StyledChatMod.server), text.getString());
         }
     }
 
     @Inject(method = "handleDecoratedMessage", at = @At("HEAD"))
     private void styledChat_setFormattedMessage(SignedMessage signedMessage, CallbackInfo ci) {
         StyledChatUtils.modifyForSending(signedMessage, this.player.getCommandSource(), MessageType.CHAT);
-    }
-
-    @Inject(method = "onClientSettings", at = @At("TAIL"))
-    private void styledChat_setFormattedMessage(ClientSettingsC2SPacket packet, CallbackInfo ci) {
-        this.styledChat$chatColors = packet.chatColors();
     }
 
     @Override
@@ -73,6 +69,6 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Override
     public boolean styledChat$chatColors() {
-        return this.styledChat$chatColors || !ConfigManager.getConfig().configData.formatting.respectColors;
+        return this.player.areClientChatColorsEnabled() || !ConfigManager.getConfig().configData.formatting.respectColors;
     }
 }

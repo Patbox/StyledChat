@@ -9,6 +9,7 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
@@ -34,12 +35,12 @@ public class PlayerManagerMixin {
     private ServerPlayerEntity styledChat_temporaryPlayer = null;
 
     @Inject(method = "onPlayerConnect", at = @At(value = "HEAD"))
-    private void styledChat_storePlayer(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
+    private void styledChat_storePlayer(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
         this.styledChat_temporaryPlayer = player;
     }
 
     @Inject(method = "onPlayerConnect", at = @At("RETURN"))
-    private void styledChat_removeStoredPlayer(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
+    private void styledChat_removeStoredPlayer(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
         this.styledChat_temporaryPlayer = null;
     }
 

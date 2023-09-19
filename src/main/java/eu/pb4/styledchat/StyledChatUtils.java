@@ -194,7 +194,7 @@ public final class StyledChatUtils {
 
         if (config.configData.formatting.respectColors) {
             try {
-                text = context.server().getMessageDecorator().decorate(context.player(), text).get();
+                text = context.server().getMessageDecorator().decorate(context.player(), text);
             } catch (Exception e) {
                 // noop
             }
@@ -203,61 +203,8 @@ public final class StyledChatUtils {
         return text;
     }
 
-    // Todo: Remove this
-    public static String legacyFormatMessage(String input, Set<String> handlers) {
-        var config = ConfigManager.getConfig();
-
-        try {
-            if (config.configData.formatting.markdown) {
-                if (handlers.contains(SPOILER_TAG)) {
-                    input = input.replaceAll(getMarkdownRegex("||", "\\|\\|"), "<spoiler>$2</spoiler>");
-                }
-
-                if (handlers.contains("bold")) {
-                    input = input.replaceAll(getMarkdownRegex("**", "\\*\\*"), "<bold>$2</bold>");
-                }
-
-                if (handlers.contains("underline")) {
-                    input = input.replaceAll(getMarkdownRegex("__", "__"), "<underline>$2</underline>");
-                }
-
-                if (handlers.contains("strikethrough")) {
-                    input = input.replaceAll(getMarkdownRegex("~~", "~~"), "<strikethrough>$2</strikethrough>");
-                }
-
-                if (handlers.contains("italic")) {
-                    input = input.replaceAll(getMarkdownRegex("*", "\\*"), "<italic>$2</italic>");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return input;
-    }
-
     private static String getMarkdownRegex(String base, String sides) {
         return "(" + sides + ")(?<id>[^" + base + "]+)(" + sides + ")";
-    }
-
-    public static MessageDecorator getChatDecorator() {
-        return (player, message) -> {
-            if (player != null) {
-                return CompletableFuture.completedFuture(StyledChatStyles.getChat(player, formatFor(PlaceholderContext.of(player), message.getString())));
-            } else {
-                return CompletableFuture.completedFuture(formatFor(PlaceholderContext.of(StyledChatMod.server), message.getString()));
-            }
-        };
-    }
-
-    public static MessageDecorator getRawDecorator() {
-        return (player, message) -> {
-            if (player != null) {
-                return CompletableFuture.completedFuture(formatFor(PlaceholderContext.of(player), message.getString()));
-            } else {
-                return CompletableFuture.completedFuture(formatFor(PlaceholderContext.of(StyledChatMod.server), message.getString()));
-            }
-        };
     }
 
     public static <T> MessageDecorator getCommandDecorator(String context, ServerCommandSource source, BiFunction<String, Class<?>, Object> argumentGetter) {
@@ -268,7 +215,7 @@ public final class StyledChatUtils {
             var input = formatFor(player != null ? PlaceholderContext.of(player) : PlaceholderContext.of(StyledChatMod.server), message.getString());
 
 
-            return CompletableFuture.completedFuture(switch (context) {
+            return switch (context) {
                 case "msg" -> {
                     try {
                         yield config.getPrivateMessageReceived(
@@ -297,7 +244,7 @@ public final class StyledChatUtils {
                 case "me" -> config.getMeCommand(source, input);
 
                 default -> input;
-            });
+            };
         };
     }
 
