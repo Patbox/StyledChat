@@ -22,21 +22,20 @@ import eu.pb4.styledchat.parser.MentionParser;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.EntitySelector;
-import net.minecraft.network.message.*;
+import net.minecraft.network.message.MessageBody;
+import net.minecraft.network.message.MessageDecorator;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.text.TextContent;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -298,7 +297,7 @@ public final class StyledChatUtils {
 
         var baseInput = ext.styledChat_getArg("base_input");
 
-        var input = baseInput != null && baseInput.getContent() != TextContent.EMPTY
+        var input = baseInput != null && baseInput.getContent() != PlainTextContent.EMPTY
                 ? baseInput
                 : maybeFormatFor(source, ext.styledChat_getOriginal(), message.getContent());
 
@@ -379,7 +378,7 @@ public final class StyledChatUtils {
         var ext = (ExtSignedMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");
-        var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
+        var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != PlainTextContent.EMPTY ? baseInput : formatFor(context, ext.styledChat_getOriginal());
         if (baseInput == StyledChatUtils.EMPTY_TEXT) {
             ext.styledChat_setArg("base_input", input);
         }
