@@ -11,8 +11,8 @@ import net.minecraft.network.message.SignedMessage;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import java.util.Objects;
@@ -52,7 +52,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
                     var baseInput = ExtSignedMessage.getArg(signedMessage, "base_input");
                     var source = ExtSignedMessage.of(signedMessage).styledChat_getSource();
 
-                    var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY
+                    var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != PlainTextContent.EMPTY
                             ? baseInput
                             : signedMessage.getContent();
 
@@ -92,7 +92,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
                 var baseInput = ExtSignedMessage.getArg(message, "base_input");
                 var source = ExtSignedMessage.of(message).styledChat_getSource();
 
-                var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != TextContent.EMPTY
+                var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != PlainTextContent.EMPTY
                         ? baseInput
                         : message.getContent();
 
