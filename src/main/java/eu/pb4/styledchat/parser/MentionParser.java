@@ -40,9 +40,9 @@ public record MentionParser(TextNode style, PlaceholderContext context) implemen
         if (input.isEmpty()) return new TextNode[]{};
         for (ServerPlayerEntity player : context.server().getPlayerManager().getPlayerList()) {
             if (VANISH && VanishAPI.isVanished(player)) continue;
-            int startPos = input.indexOf(player.getEntityName());
+            int startPos = input.indexOf(player.getNameForScoreboard());
             if (startPos != -1) {
-                int endPos = startPos + player.getEntityName().length();
+                int endPos = startPos + player.getNameForScoreboard().length();
                 TextNode[] before = parseInput(input.substring(0, startPos));
                 TextNode mention = new DirectTextNode(style.toText(PlaceholderContext.of(player)));
                 TextNode[] after = parseInput(input.substring(Math.min(endPos, input.length())));
