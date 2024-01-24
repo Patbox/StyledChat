@@ -4,6 +4,7 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -178,7 +179,7 @@ public final class StyledChatStyles {
 
     }
 
-    public static Text getCustom(Identifier identifier, Text displayName, Text message, @Nullable Text receiver, ServerCommandSource source) {
+    public static Text getCustom(Identifier identifier, Text displayName, Text message, Text receiver, ServerCommandSource source) {
         if (source.isExecutedByPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getCustom(identifier, displayName, message, receiver, source);
             if (style != null) {
@@ -192,17 +193,23 @@ public final class StyledChatStyles {
             return out;
         }
 
-        var type = StyledChatMod.server.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).get(identifier);
+        var type = source.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).get(identifier);
 
         if (type == null) {
             return Text.empty();
         }
 
-        var params = type.params(displayName);
+        var optional = source.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getKey(type);
+
+        if (optional.isEmpty()) {
+            return Text.empty();
+        }
+        var params = MessageType.params(optional.get(), source.getRegistryManager(), displayName);
 
         if (receiver != null) {
             params = params.withTargetName(receiver);
         }
+
 
         return type.chat().apply(message, params);
     }

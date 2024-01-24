@@ -38,16 +38,16 @@ public class TeamMsgCommandMixin {
         if (message instanceof ExtendedSentMessage extSentMessage) {
             try {
                 if (source.getPlayer() == instance) {
-                    var sent = StyledChatMod.getMessageType().params(StyledChatStyles.getTeamChatSent(
-                            ((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
-                            source.getDisplayName(),
-                            ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), instance.getCommandSource()
+                    var sent = MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, source.getServer().getRegistryManager(), StyledChatStyles.getTeamChatSent(
+                        source.getEntity().getScoreboardTeam().getFormattedName(),
+                        source.getDisplayName(),
+                        ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), instance.getCommandSource()
                     ));
 
                     source.sendChatMessage(message, bl, sent);
                 } else {
-                    var rex = StyledChatMod.getMessageType().params(StyledChatStyles.getTeamChatReceived(
-                            ((Team) source.getEntity().getScoreboardTeam()).getFormattedName(),
+                    var rex = MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, source.getServer().getRegistryManager(), StyledChatStyles.getTeamChatReceived(
+                            source.getEntity().getScoreboardTeam().getFormattedName(),
                             source.getDisplayName(),
                             ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), source
                     ));
