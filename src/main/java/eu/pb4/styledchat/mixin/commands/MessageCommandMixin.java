@@ -38,7 +38,7 @@ public class MessageCommandMixin {
     private static void styledChat_formatText(ServerPlayerEntity instance, SentMessage message, boolean bl, MessageType.Parameters parameters, ServerCommandSource source) {
         if (message instanceof ExtendedSentMessage extSentMessage) {
             try {
-                var sent = StyledChatMod.getMessageType().params(StyledChatStyles.getPrivateMessageSent(
+                var sent = MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, source.getServer().getRegistryManager(), StyledChatStyles.getPrivateMessageSent(
                         source.getDisplayName(),
                         instance.getDisplayName(),
                         ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), instance.getCommandSource()
@@ -47,10 +47,10 @@ public class MessageCommandMixin {
 
                 source.sendChatMessage(message, bl, sent);
 
-                var rex = StyledChatMod.getMessageType().params(StyledChatStyles.getPrivateMessageReceived(
-                        source.getDisplayName(),
-                        instance.getDisplayName(),
-                        ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), source
+                var rex = MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, source.getServer().getRegistryManager(), StyledChatStyles.getPrivateMessageReceived(
+                    source.getDisplayName(),
+                    instance.getDisplayName(),
+                    ExtSignedMessage.getArg(extSentMessage.styledChat$message(), "base_input"), source
                 ));
 
                 instance.sendChatMessage(message, bl, rex);
