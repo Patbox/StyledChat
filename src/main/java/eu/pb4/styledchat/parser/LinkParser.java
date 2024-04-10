@@ -10,6 +10,7 @@ import eu.pb4.placeholders.api.node.parent.ClickActionNode;
 import eu.pb4.placeholders.api.node.parent.ParentNode;
 import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import eu.pb4.placeholders.api.parsers.NodeParser;
+import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.ConfigManager;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.MutableText;
@@ -42,13 +43,13 @@ public record LinkParser(TextNode style) implements NodeParser {
 
                 String betweenText = input.substring(currentPos, matcher.start());
 
-                if (betweenText.length() != 0) {
+                if (!betweenText.isEmpty()) {
                     list.add(new LiteralNode(betweenText));
                 }
 
                 var link = matcher.group();
 
-                var text = style.toText(ParserContext.of(DynamicNode.NODES, Map.of("url", Text.literal(link), "link", Text.literal(link))));
+                var text = style.toText(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Text.literal(link), "link", Text.literal(link))::get));
 
                 list.add(new DirectTextNode(Text.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link)))));
 
@@ -57,7 +58,7 @@ public record LinkParser(TextNode style) implements NodeParser {
 
             if (currentPos < currentEnd) {
                 String restOfText = input.substring(currentPos, currentEnd);
-                if (restOfText.length() != 0) {
+                if (!restOfText.isEmpty()) {
                     list.add(new LiteralNode(restOfText));
                 }
             }

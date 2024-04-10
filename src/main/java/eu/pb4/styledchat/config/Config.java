@@ -4,6 +4,7 @@ package eu.pb4.styledchat.config;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
+import eu.pb4.placeholders.api.parsers.tag.TagRegistry;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.PredicateContext;
 import eu.pb4.styledchat.config.data.ChatStyleData;
@@ -49,7 +50,7 @@ public final class Config {
         }
 
 
-        for (var tag : TextParserV1.DEFAULT.getTags()) {
+        for (var tag : TagRegistry.DEFAULT.getTags()) {
             this.allPossibleAutoCompletionKeys.add("<" + tag.name() + ">");
             if (tag.aliases() != null) {
                 for (var a : tag.aliases()) {
