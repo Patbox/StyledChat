@@ -7,6 +7,8 @@ import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.*;
+import eu.pb4.placeholders.api.parsers.tag.TagRegistry;
+import eu.pb4.placeholders.api.parsers.tag.TextTag;
 import eu.pb4.placeholders.impl.GeneralUtils;
 import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.playerdata.api.storage.JsonDataStorage;
@@ -43,6 +45,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class StyledChatUtils {
     public static final Text IGNORED_TEXT = Text.empty();
 
@@ -54,20 +57,27 @@ public final class StyledChatUtils {
     private static final Function<MutableText, MutableText> COLOR_CLEARING = (t) -> t.setStyle(t.getStyle().withColor((TextColor) null));
 
     public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class, ConfigManager.GSON);
+    public static final TextTag SPOILER_TEXT_TAG_NEW = TextTag.enclosing(SPOILER_TAG, List.of("hide"), "styledchat", true, ((nodes, arg, parser) -> new SpoilerNode(nodes)));
 
+    public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
+    public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
+
+
+    public static final TagLikeParser.Format EMOTE_FORMAT = TagLikeParser.Format.of(':', ':');
+    public static final Text EMPTY_TEXT = Text.empty();
+    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
+
+    @Deprecated(forRemoval = true)
     public static final TextParserV1.TagNodeBuilder SPOILER_TAG_HANDLER = (tag, data, input, handlers, endAt) -> {
         var out = TextParserV1.parseNodesWith(input, handlers, endAt);
 
         return new TextParserV1.TagNodeValue(new SpoilerNode(out.nodes()), out.length());
     };
 
+    @Deprecated(forRemoval = true)
     public static final TextParserV1.TextTag SPOILER_TEXT_TAG = TextParserV1.TextTag.of(SPOILER_TAG, List.of("hide"), "styledchat", true, SPOILER_TAG_HANDLER);
-
-    public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
-    public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
+    @Deprecated(forRemoval = true)
     public static final Pattern EMOTE_PATTERN = Pattern.compile("(?<!((?<!(\\\\))\\\\))[:](?<id>[^:]+)[:]");;
-    public static final Text EMPTY_TEXT = Text.empty();
-    private static final Set<RegistryKey<MessageType>> DECORABLE = Set.of(MessageType.CHAT, MessageType.EMOTE_COMMAND, MessageType.MSG_COMMAND_INCOMING, MessageType.MSG_COMMAND_OUTGOING, MessageType.SAY_COMMAND, MessageType.TEAM_MSG_COMMAND_INCOMING, MessageType.TEAM_MSG_COMMAND_OUTGOING);
 
     @Deprecated
     public static TextNode parseText(String input) {
@@ -80,76 +90,103 @@ public final class StyledChatUtils {
 
     public static NodeParser createParser(PlaceholderContext context) {
         var config = ConfigManager.getConfig();
-        var list = new ArrayList<NodeParser>();
-        var base = createTextParserV1(context.source());
+        var builder = NodeParser.builder();
 
-        list.add(base);
+        var tags = getTextTagRegistry(context.source());
 
+        if (!tags.getTags().isEmpty()) {
+            builder.simplifiedTextFormat();
+            builder.quickText();
+            builder.customTagRegistry(tags);
+        }
         if (config.configData.formatting.parseLinksInChat) {
-            list.add(new LinkParser(ConfigManager.getConfig().getLinkStyle(context)));
+            builder.add(new LinkParser(ConfigManager.getConfig().getLinkStyle(context)));
         }
 
         if (config.configData.formatting.parseMentionsInChat) {
-            list.add(new MentionParser(ConfigManager.getConfig().getMentionStyle(context), context));
+            builder.add(new MentionParser(ConfigManager.getConfig().getMentionStyle(context), context));
         }
+
 
         if (config.configData.formatting.markdown) {
             var form = new ArrayList<MarkdownLiteParserV1.MarkdownFormat>();
 
-            if (base.getTagParser("bold") != null) {
+            if (tags.getTag("bold") != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.BOLD);
             }
 
-            if (base.getTagParser("italic") != null) {
+            if (tags.getTag("italic") != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.ITALIC);
             }
 
-            if (base.getTagParser("underline") != null) {
+            if (tags.getTag("underline") != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.UNDERLINE);
             }
 
-            if (base.getTagParser("strikethrough") != null) {
+            if (tags.getTag("strikethrough") != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.STRIKETHROUGH);
             }
 
-            if (base.getTagParser(SPOILER_TAG) != null) {
+            if (tags.getTag(SPOILER_TAG) != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.SPOILER);
             }
 
-            if (base.getTagParser("link") != null) {
+            if (tags.getTag("link") != null) {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.URL);
             }
 
-            if (!form.isEmpty()) {
-                list.add(new MarkdownLiteParserV1(SpoilerNode::new, MarkdownLiteParserV1::defaultQuoteFormatting, form.toArray(new MarkdownLiteParserV1.MarkdownFormat[0])));
-            }
+            builder.markdown(SpoilerNode::new, MarkdownLiteParserV1::defaultQuoteFormatting, MarkdownLiteParserV1::defaultUrlFormatting,
+                    form.toArray(new MarkdownLiteParserV1.MarkdownFormat[0]));
         }
 
         if (config.configData.formatting.legacyChatFormatting) {
             var form = new ArrayList<Formatting>();
             for (var formatting : Formatting.values()) {
-                if (base.getTagParser(formatting.getName()) != null) {
+                if (tags.getTag(formatting.getName()) != null) {
                     form.add(formatting);
                 }
             }
 
-            boolean color = base.getTagParser("color") != null;
+            boolean color = tags.getTag("color") != null;
 
             if (!form.isEmpty() || color) {
-                list.add(new LegacyFormattingParser(color, form.toArray(new Formatting[0])));
+                builder.legacy(color, form.toArray(new Formatting[0]));
             }
         }
 
         var emotes = getEmotes(context);
 
         if (!emotes.isEmpty()) {
-            list.add(new PatternPlaceholderParser(EMOTE_PATTERN, emotes::get));
+            builder.placeholders(EMOTE_FORMAT, emotes::get);
         }
 
-        return NodeParser.merge(list);
+        return builder.build();
     }
 
+    public static TagRegistry getTextTagRegistry(ServerCommandSource source) {
+        Config config = ConfigManager.getConfig();
+        var registry = TagRegistry.create();
 
+        var allowedFormatting = config.getAllowedFormatting(source);
+
+        for (var entry : TagRegistry.DEFAULT.getTags()) {
+            if (allowedFormatting.getBoolean(entry.name())
+                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name(), entry.userSafe() ? 2 : 4)
+                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + ".type." + entry.type(), entry.userSafe() ? 2 : 4)
+            ) {
+                registry.register(entry);
+            }
+        }
+
+        if (allowedFormatting.getBoolean(SPOILER_TAG)
+                || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
+            registry.register(SPOILER_TEXT_TAG_NEW);
+        }
+
+        return registry;
+    }
+    @SuppressWarnings("removal")
+    @Deprecated(forRemoval = true)
     public static TextParserV1 createTextParserV1(ServerCommandSource source) {
         var parser = new TextParserV1();
         Config config = ConfigManager.getConfig();
@@ -402,7 +439,7 @@ public final class StyledChatUtils {
 
         var source = player.getCommandSource();
 
-        var handler = StyledChatUtils.createTextParserV1(source);
+        var handler = StyledChatUtils.getTextTagRegistry(source);
 
         if (config.configData.autoCompletion.tags) {
             for (var tag : handler.getTags()) {

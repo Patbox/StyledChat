@@ -33,12 +33,14 @@ public class StyledChatEvents {
     /**
      * This event can be used to allow custom formatting
      */
+    @Deprecated(forRemoval = true)
     public static final Event<FormattingCreationEvent> FORMATTING_CREATION_EVENT = EventFactory.createArrayBacked(FormattingCreationEvent.class, callbacks -> (player, builder) -> {
         for (var callback : callbacks) {
             callback.onFormattingBuild(player, builder);
         }
     });
 
+    @Deprecated(forRemoval = true)
     public interface FormattingCreationEvent {
         void onFormattingBuild(ServerCommandSource player, TextParserV1 builder);
     }

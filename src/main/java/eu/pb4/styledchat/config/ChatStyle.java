@@ -1,20 +1,18 @@
 package eu.pb4.styledchat.config;
 
 import com.google.gson.JsonObject;
+import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.node.DynamicTextNode;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.TextNode;
-import eu.pb4.placeholders.api.parsers.NodeParser;
-import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
-import eu.pb4.placeholders.api.parsers.StaticPreParser;
-import eu.pb4.placeholders.api.parsers.TextParserV1;
+import eu.pb4.placeholders.api.parsers.*;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
-import eu.pb4.styledchat.parser.DynamicNode;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.entity.passive.TameableEntity;
@@ -26,14 +24,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
+@SuppressWarnings("UnstableApiUsage")
 public class ChatStyle {
+    public static final ParserContext.Key<Function<String, Text>> DYN_KEY = DynamicTextNode.key("styled_chat");
     public static final ChatStyle EMPTY = new ChatStyle(new ChatStyleData());
-    public static final NodeParser PARSER = NodeParser.merge(
-            TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
-            new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, DynamicNode::of),
-            StaticPreParser.INSTANCE
-    );
+    public static final NodeParser PARSER =  NodeParser.builder()
+            .simplifiedTextFormat()
+            .quickText()
+            .globalPlaceholders()
+            .placeholders(TagLikeParser.PLACEHOLDER_USER, DYN_KEY)
+            .staticPreParsing()
+            .build();
     public final MinecraftPredicate require;
     public final TextNode displayName;
     public final TextNode chat;
@@ -256,7 +259,7 @@ public class ChatStyle {
         } else if (this.displayName == EmptyNode.INSTANCE) {
             return vanillaDisplayName;
         }
-        var context = PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("vanillaDisplayName", vanillaDisplayName, "player", vanillaDisplayName, "default", vanillaDisplayName, "name", player.getName()));
+        var context = PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("vanillaDisplayName", vanillaDisplayName, "player", vanillaDisplayName, "default", vanillaDisplayName, "name", player.getName())::get);
 
         return this.displayName.toText(context);
     }
@@ -271,7 +274,7 @@ public class ChatStyle {
 
 
         return this.chat.toText(PlaceholderContext.of(player)
-                .asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "message", message)));
+                .asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "message", message)::get));
     }
 
     @Nullable
@@ -282,7 +285,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.join.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
+        return this.join.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -293,7 +296,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.joinFirstTime.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
+        return this.joinFirstTime.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -304,7 +307,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "old_name", Text.literal(oldName))));
+        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "old_name", Text.literal(oldName))::get));
     }
 
     @Nullable
@@ -315,7 +318,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.left.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName())));
+        return this.left.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -326,7 +329,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.death.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "default_message", vanillaMessage)));
+        return this.death.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "default_message", vanillaMessage)::get));
     }
 
     @Nullable
@@ -337,7 +340,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementGoal.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
+        return this.advancementGoal.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -348,7 +351,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementTask.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
+        return this.advancementTask.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -359,7 +362,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementChallenge.toText(PlaceholderContext.of(player).asParserContext().with(DynamicNode.NODES, Map.of("player", player.getDisplayName(), "advancement", advancement)));
+        return this.advancementChallenge.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -370,7 +373,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
+        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
     }
 
     @Nullable
@@ -381,7 +384,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)));
+        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
 
     }
 
@@ -393,7 +396,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.privateMessageSent.toText(context.asParserContext().with(DynamicNode.NODES, Map.of("sender", sender, "receiver", receiver, "message", message)));
+        return this.privateMessageSent.toText(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
     }
 
     @Nullable
@@ -404,7 +407,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.privateMessageReceived.toText(context.asParserContext().with(DynamicNode.NODES, Map.of("sender", sender, "receiver", receiver, "message", message)));
+        return this.privateMessageReceived.toText(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
     }
 
     @Nullable
@@ -415,7 +418,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.teamChatSent.toText(PlaceholderContext.of(context).asParserContext().with(DynamicNode.NODES, Map.of("team", team, "displayName", displayName, "message", message)));
+        return this.teamChatSent.toText(PlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -426,7 +429,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.teamChatReceived.toText(PlaceholderContext.of(context).asParserContext().with(DynamicNode.NODES, Map.of("team", team, "displayName", displayName, "message", message)));
+        return this.teamChatReceived.toText(PlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -439,7 +442,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return node.toText(PlaceholderContext.of(source).asParserContext().with(DynamicNode.NODES, Map.of("receiver", receiver == null ? Text.empty() : receiver, "displayName", displayName, "message", message)));
+        return node.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("receiver", receiver == null ? Text.empty() : receiver, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -467,6 +470,7 @@ public class ChatStyle {
             return null;
         }
 
-        return this.petDeath.toText(PlaceholderContext.of(entity).asParserContext().with(DynamicNode.NODES, Map.of("pet", entity.getDisplayName(), "default_message", vanillaMessage)));
+        return this.petDeath.toText(PlaceholderContext.of(entity).asParserContext().with(DYN_KEY,
+                Map.of("pet", entity.getDisplayName(), "default_message", vanillaMessage)::get));
     }
 }
