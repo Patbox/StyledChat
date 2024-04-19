@@ -18,7 +18,7 @@ import java.util.Map;
 public class RegistryLoaderMixin {
     @Inject(method = "load(Lnet/minecraft/registry/RegistryLoader$RegistryLoadable;Lnet/minecraft/registry/DynamicRegistryManager;Ljava/util/List;)Lnet/minecraft/registry/DynamicRegistryManager$Immutable;", at = @At(value = "INVOKE", target = "Ljava/util/List;forEach(Ljava/util/function/Consumer;)V", ordinal = 0, shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private static void styledChat$injectMessageTypes(@Coerce Object registryLoadable, DynamicRegistryManager baseRegistryManager, List<RegistryLoader.Entry<?>> entries, CallbackInfoReturnable<DynamicRegistryManager.Immutable> cir, Map map,
-                                                      List<RegistryLoader.class_9158<?>> list, RegistryOps.RegistryInfoGetter registryInfoGetter) {
+                                                      List<RegistryLoader.Loader<?>> list, RegistryOps.RegistryInfoGetter registryInfoGetter) {
 
         for (var entry : list) {
             var reg = entry.registry();
