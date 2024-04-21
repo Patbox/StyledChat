@@ -30,7 +30,7 @@ import java.util.function.Function;
 public class ChatStyle {
     public static final ParserContext.Key<Function<String, Text>> DYN_KEY = DynamicTextNode.key("styled_chat");
     public static final ChatStyle EMPTY = new ChatStyle(new ChatStyleData());
-    public static final NodeParser PARSER =  NodeParser.builder()
+    public static final NodeParser PARSER = NodeParser.builder()
             .simplifiedTextFormat()
             .quickText()
             .globalPlaceholders()
