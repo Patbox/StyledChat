@@ -29,8 +29,11 @@ import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.ChatSuggestionsS2CPacket;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.scoreboard.Team;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
@@ -508,6 +511,6 @@ public final class StyledChatUtils {
     }
 
     public static MessageType.Parameters createParameters(Text override) {
-        return new MessageType.Parameters(StyledChatMod.getMessageType(), override, null);
+        return MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, StyledChatMod.server.getRegistryManager(), override);
     }
 }
