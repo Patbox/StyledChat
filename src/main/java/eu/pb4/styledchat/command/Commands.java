@@ -172,7 +172,7 @@ public class Commands {
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
         var old = ConfigManager.getConfig().allPossibleAutoCompletionKeys;
-        if (ConfigManager.loadConfig()) {
+        if (ConfigManager.loadConfig(context.getSource().getRegistryManager())) {
             context.getSource().sendFeedback(() -> Text.literal("Reloaded config!"), false);
 
             for (var player : context.getSource().getServer().getPlayerManager().getPlayerList()) {

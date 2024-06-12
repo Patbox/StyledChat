@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public final class Config {
+    public static final Config DEFAULT = new Config(new ConfigData());
     public final ConfigData configData;
     private final ChatStyle defaultStyle;
     private final List<ChatStyle> permissionStyle;

@@ -11,14 +11,12 @@ import eu.pb4.styledchat.config.data.ConfigData;
 import eu.pb4.styledchat.config.data.VersionConfigData;
 import eu.pb4.styledchat.config.data.old.ConfigDataV2;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.registry.RegistryWrapper;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class ConfigManager {
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient()
-            .registerTypeHierarchyAdapter(MinecraftPredicate.class, GsonPredicateSerializer.INSTANCE).create();
-
     private static Config config = null;
     private static ConfigData configData = null;
 
@@ -26,9 +24,8 @@ public class ConfigManager {
     public static Config getConfig() {
         if (config == null) {
             if (configData == null) {
-                loadConfig();
+                return Config.DEFAULT;
             }
-
             config = new Config(configData);
         }
 
@@ -39,22 +36,25 @@ public class ConfigManager {
         config = null;
     }
 
-    public static boolean loadConfig() {
+    public static boolean loadConfig(RegistryWrapper.WrapperLookup lookup) {
         config = null;
         try {
+            var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient()
+                    .registerTypeHierarchyAdapter(MinecraftPredicate.class, GsonPredicateSerializer.create(lookup)).create();
+
             ConfigData config;
             var configFile = FabricLoader.getInstance().getConfigDir().resolve("styled-chat.json");
 
             if (Files.exists(configFile)) {
                 String json = Files.readString(configFile, StandardCharsets.UTF_8);
-                VersionConfigData versionConfigData = GSON.fromJson(json, VersionConfigData.class);
+                VersionConfigData versionConfigData = gson.fromJson(json, VersionConfigData.class);
 
 
                 if (versionConfigData.version < 3) {
-                    config = GSON.fromJson(json, ConfigDataV2.class).update();
+                    config = gson.fromJson(json, ConfigDataV2.class).update();
                     Files.writeString(FabricLoader.getInstance().getConfigDir().resolve("styled-chat.json_old_v2"), json, StandardCharsets.UTF_8);
                 } else {
-                    config = GSON.fromJson(json, ConfigData.class);
+                    config = gson.fromJson(json, ConfigData.class);
                 }
 
                 config.defaultStyle.fillMissing();
@@ -62,7 +62,7 @@ public class ConfigManager {
                 config = new ConfigData();
             }
 
-            Files.writeString(configFile, GSON.toJson(config), StandardCharsets.UTF_8);
+            Files.writeString(configFile, gson.toJson(config), StandardCharsets.UTF_8);
 
             configData = config;
             return true;

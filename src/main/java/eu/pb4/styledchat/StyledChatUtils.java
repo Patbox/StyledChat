@@ -12,6 +12,8 @@ import eu.pb4.placeholders.api.parsers.tag.TextTag;
 import eu.pb4.placeholders.impl.GeneralUtils;
 import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.playerdata.api.storage.JsonDataStorage;
+import eu.pb4.playerdata.impl.BaseGson;
+import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.Config;
 import eu.pb4.styledchat.config.ConfigManager;
@@ -56,7 +58,7 @@ public final class StyledChatUtils {
     public static final String SPOILER_TAG = "spoiler";
     private static final Function<MutableText, MutableText> COLOR_CLEARING = (t) -> t.setStyle(t.getStyle().withColor((TextColor) null));
 
-    public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class, ConfigManager.GSON);
+    public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class);
     public static final TextTag SPOILER_TEXT_TAG_NEW = TextTag.enclosing(SPOILER_TAG, List.of("hide"), "styledchat", true, ((nodes, arg, parser) -> new SpoilerNode(nodes)));
 
     public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";

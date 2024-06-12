@@ -24,7 +24,7 @@ public class StyledChatMod implements ModInitializer {
 
 	public static boolean USE_FABRIC_API = true;
 
-	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, new Identifier("styled_chat", "generic_hack"));
+	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, Identifier.of("styled_chat", "generic_hack"));
 
 	public static MessageType getMessageType() {
 		return server.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getOrThrow(MESSAGE_TYPE_ID);
@@ -41,7 +41,7 @@ public class StyledChatMod implements ModInitializer {
 
 	public static void serverStarting(MinecraftServer s) {
 		crabboardDetection();
-		ConfigManager.loadConfig();
+		ConfigManager.loadConfig(s.getRegistryManager());
 		server = s;
 	}
 
