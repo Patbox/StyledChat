@@ -154,7 +154,7 @@ public class Commands {
         {
             var x = argument("id", IdentifierArgumentType.identifier())
                     .suggests((context, builder) -> {
-                        for (var id : context.getSource().getServer().getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getIds()) {
+                        for (var id : context.getSource().getServer().getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getIds()) {
                             if (!id.getNamespace().equals("minecraft") && !id.equals(StyledChatMod.MESSAGE_TYPE_ID.getValue())) {
                                 builder.suggest(id.toString());
                             }
