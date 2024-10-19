@@ -193,13 +193,13 @@ public final class StyledChatStyles {
             return out;
         }
 
-        var type = source.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).get(identifier);
+        var type = source.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).get(identifier);
 
         if (type == null) {
             return Text.empty();
         }
 
-        var optional = source.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getKey(type);
+        var optional = source.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getKey(type);
 
         if (optional.isEmpty()) {
             return Text.empty();

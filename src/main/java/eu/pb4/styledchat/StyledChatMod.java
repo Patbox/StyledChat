@@ -26,10 +26,6 @@ public class StyledChatMod implements ModInitializer {
 
 	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, Identifier.of("styled_chat", "generic_hack"));
 
-	public static MessageType getMessageType() {
-		return server.getRegistryManager().get(RegistryKeys.MESSAGE_TYPE).getOrThrow(MESSAGE_TYPE_ID);
-	}
-
 	@Override
 	public void onInitialize() {
 		this.crabboardDetection();
