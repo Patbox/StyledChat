@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "eu.pb4.styledchat.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CommandManagerMixin",
     "MessageArgumentTypeMixin",
@@ -11,7 +11,6 @@
     "PlayerAdvancementTrackerMixin",
     "PlayerEntityMixin",
     "PlayerManagerMixin",
-    "RegistryLoaderMixin",
     "SentMessageMixin",
     "SentMessageMixin$ChatMixin",
     "SentMessageMixin$ProfilelessMixin",

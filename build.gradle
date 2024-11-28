@@ -42,9 +42,9 @@ dependencies {
 	//modLocalRuntime fabricApi.module("fabric-api-base", project.fabric_version)
 
 	modImplementation include("eu.pb4:predicate-api:0.6.0+1.21.2")
-	modImplementation include("eu.pb4:placeholder-api:2.5.0+1.21.2")
-	modImplementation include("me.lucko:fabric-permissions-api:0.3.1")
-	modImplementation include("eu.pb4:player-data-api:0.6.0+1.21")
+	modImplementation include("eu.pb4:placeholder-api:2.5.1+1.21.3")
+	modImplementation include("me.lucko:fabric-permissions-api:0.3.3")
+	modImplementation include("eu.pb4:player-data-api:0.7.0+1.21.3")
 
 	modCompileOnly("maven.modrinth:vanish:1.5.2+1.20.4")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")

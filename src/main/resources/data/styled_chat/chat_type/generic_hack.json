@@ -1,0 +1,16 @@
+{
+  "chat": {
+    "translation_key": "%s",
+    "parameters": [
+      "sender",
+      "content"
+    ]
+  },
+  "narration": {
+    "translation_key": "%s",
+    "parameters": [
+      "sender",
+      "content"
+    ]
+  }
+}
