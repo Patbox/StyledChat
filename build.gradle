@@ -42,7 +42,7 @@ dependencies {
 	//modLocalRuntime fabricApi.module("fabric-api-base", project.fabric_version)
 
 	modImplementation include("eu.pb4:predicate-api:0.5.1+1.21")
-	modImplementation include("eu.pb4:placeholder-api:2.4.0-pre.2+1.21")
+	modImplementation include("eu.pb4:placeholder-api:2.4.2+1.21")
 	modImplementation include("me.lucko:fabric-permissions-api:0.3.1")
 	modImplementation include("eu.pb4:player-data-api:0.6.0+1.21")
 
