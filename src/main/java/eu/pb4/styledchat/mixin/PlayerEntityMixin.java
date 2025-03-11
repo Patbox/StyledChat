@@ -1,5 +1,7 @@
 package eu.pb4.styledchat.mixin;
 
+import static eu.pb4.styledchat.StyledChatMod.server;
+
 import eu.pb4.styledchat.StyledChatStyles;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,6 +17,7 @@ import java.util.Objects;
 
 @Mixin(value = PlayerEntity.class, priority = 700)
 public abstract class PlayerEntityMixin {
+
     @Unique
     private Text styledChat$cachedName = Text.empty();
 
@@ -29,7 +32,21 @@ public abstract class PlayerEntityMixin {
 
     @Inject(method = "getDisplayName", at = @At("TAIL"), cancellable = true)
     private void styledChat_replaceDisplayName(CallbackInfoReturnable<Text> cir) {
-        if (!this.styledChat$ignoreNextCalls && ((Object) this).getClass() == ServerPlayerEntity.class) {
+        if (((Object) this).getClass() != ServerPlayerEntity.class) {
+            return; // Skip processing for non-server players
+        }
+
+        // Check if we're on the main thread (server thread)
+        boolean isMainThread = server != null && Thread.currentThread() == server.getThread();
+
+        // If not on the main thread, return the cached value without updating state
+        if (!isMainThread) {
+            cir.setReturnValue(this.styledChat$cachedName);
+            return;
+        }
+
+        // Proceed with normal processing on the main thread
+        if (!this.styledChat$ignoreNextCalls) {
             var input = cir.getReturnValue();
 
             if (this.styledChat$cachedAge == ((Entity) (Object) this).age
