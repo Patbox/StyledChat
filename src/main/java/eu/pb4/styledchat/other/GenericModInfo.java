@@ -5,6 +5,7 @@ import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 
 import javax.imageio.ImageIO;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,13 +36,13 @@ public class GenericModInfo {
                         if (color == colorPixel) {
                             line++;
                         } else {
-                            base.append(Text.literal(chr.repeat(line)).setStyle(Style.EMPTY.withColor(color)));
+                            base.append(Text.literal(chr.repeat(line)).setStyle(Style.EMPTY.withColor(color).withShadowColor(color | 0xFF000000)));
                             color = colorPixel;
                             line = 1;
                         }
                     }
 
-                    base.append(Text.literal(chr.repeat(line)).setStyle(Style.EMPTY.withColor(color)));
+                    base.append(Text.literal(chr.repeat(line)).setStyle(Style.EMPTY.withColor(color).withShadowColor(color | 0xFF000000)));
                     icon.add(base);
                 }
             } catch (Throwable e) {
@@ -61,7 +62,7 @@ public class GenericModInfo {
             var output = new ArrayList<Text>();
 
             try {
-                about.add(Text.literal(container.getMetadata().getName()).setStyle(Style.EMPTY.withColor(Formatting.YELLOW).withBold(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL,container.getMetadata().getContact().get("github").orElse("")))));
+                about.add(Text.literal(container.getMetadata().getName()).setStyle(Style.EMPTY.withColor(Formatting.YELLOW).withBold(true).withClickEvent(new ClickEvent.OpenUrl(URI.create(container.getMetadata().getContact().get("github").orElse("https://pb4.eu"))))));
                 about.add(Text.translatable("Version: ").setStyle(Style.EMPTY.withColor(0xf7e1a7))
                         .append(Text.literal(container.getMetadata().getVersion().getFriendlyString()).setStyle(Style.EMPTY.withColor(Formatting.WHITE))));
 
@@ -76,7 +77,7 @@ public class GenericModInfo {
                 about.add(Text.literal("")
                         .append(Text.translatable("Contributors")
                                 .setStyle(Style.EMPTY.withColor(Formatting.AQUA)
-                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                        .withHoverEvent(new HoverEvent.ShowText(
                                                 Text.literal(String.join(", ", contributors)
                                         ))
                                 )))

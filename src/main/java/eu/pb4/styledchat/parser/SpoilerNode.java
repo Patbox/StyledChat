@@ -25,7 +25,7 @@ public class SpoilerNode extends ParentNode {
         var ctx = context.get(PlaceholderContext.KEY);
         var obj = config.getSpoilerStyle(ctx).toText(ctx.asParserContext()
                 .with(ChatStyle.DYN_KEY, Map.of("spoiler", Text.literal(config.getSpoilerSymbole(ctx).repeat(out.getString().length())))::get));
-        return Text.empty().append(obj).setStyle(obj.getStyle().withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, out)));
+        return Text.empty().append(obj).setStyle(obj.getStyle().withHoverEvent(new HoverEvent.ShowText(out)));
     }
 
     @Override

@@ -17,6 +17,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,22 +37,31 @@ public record LinkParser(TextNode style) implements NodeParser {
             int currentPos = 0;
             int currentEnd = input.length();
 
+
             while (matcher.find()) {
                 if (currentEnd <= matcher.start()) {
                     break;
                 }
 
                 String betweenText = input.substring(currentPos, matcher.start());
+                var link = matcher.group();
+
+                URI uri;
+                try {
+                    uri = URI.create(link);
+                } catch (Throwable e) {
+                    continue;
+                }
+
 
                 if (!betweenText.isEmpty()) {
                     list.add(new LiteralNode(betweenText));
                 }
 
-                var link = matcher.group();
 
                 var text = style.toText(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Text.literal(link), "link", Text.literal(link))::get));
 
-                list.add(new DirectTextNode(Text.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link)))));
+                list.add(new DirectTextNode(Text.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent.OpenUrl(uri)))));
 
                 currentPos = matcher.end();
             }
