@@ -31,6 +31,7 @@ public abstract class PlayerEntityMixin {
     private void styledChat_replaceDisplayName(CallbackInfoReturnable<Text> cir) {
         if (!this.styledChat$ignoreNextCalls && ((Object) this).getClass() == ServerPlayerEntity.class) {
             var input = cir.getReturnValue();
+            var player = (ServerPlayerEntity) (Object) this;
 
             if (this.styledChat$cachedAge == ((Entity) (Object) this).age
                     && (this.styledChat$previousInput == null || Objects.equals(this.styledChat$previousInput, input))) {
@@ -38,9 +39,20 @@ public abstract class PlayerEntityMixin {
                 return;
             }
 
+            boolean isMainThread = player.getServer() != null && player.getServer().isOnThread();
+
+            // If not on the main thread, return the cached value without updating state
+            if (!isMainThread) {
+                if (this.styledChat$cachedName != null) {
+                    cir.setReturnValue(this.styledChat$cachedName);
+                }
+                return;
+            }
+
+
             this.styledChat$previousInput = input;
             this.styledChat$ignoreNextCalls = true;
-            var name = StyledChatStyles.getDisplayName((ServerPlayerEntity) (Object) this, input);
+            var name = StyledChatStyles.getDisplayName(player, input);
             this.styledChat$ignoreNextCalls = false;
             this.styledChat$cachedName = name;
             this.styledChat$cachedAge = ((Entity) (Object) this).age;
