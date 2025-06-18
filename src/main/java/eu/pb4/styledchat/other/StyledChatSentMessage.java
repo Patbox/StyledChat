@@ -44,7 +44,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
                 colorless.setValue(StyledChatUtils.removeColor(parameters));
             }
             if (!signedMessage.isFullyFiltered()) {
-                var id = receiver.server.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
+                var id = receiver.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
 
                 if (sourceType == null || Objects.equals(id, this.sourceType.getValue())) {
                     receiver.networkHandler.sendChatMessage(signedMessage, color ? this.parameters : colorless.getValue());
@@ -62,7 +62,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
                         text = StyledChatUtils.removeColor(text);
                     }
 
-                    receiver.networkHandler.sendChatMessage(signedMessage, MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, receiver.server.getRegistryManager(), text));
+                    receiver.networkHandler.sendChatMessage(signedMessage, MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, receiver.getRegistryManager(), text));
                 }
             }
         }
@@ -80,7 +80,7 @@ public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage 
 
         @Override
         public void send(ServerPlayerEntity receiver, boolean filterMaskEnabled, MessageType.Parameters params) {
-            var id = receiver.server.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
+            var id = receiver.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
             var color = ((ExtPlayNetworkHandler) receiver.networkHandler).styledChat$chatColors();
             if (!color && colorless.getValue() == null) {
                 colorless.setValue(StyledChatUtils.removeColor(parameters));
