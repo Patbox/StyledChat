@@ -39,7 +39,7 @@ public abstract class PlayerEntityMixin {
                 return;
             }
 
-            boolean isMainThread = player.getServer() != null && player.getServer().isOnThread();
+            boolean isMainThread = player.getEntityWorld().getServer().isOnThread();
 
             // If not on the main thread, return the cached value without updating state
             if (!isMainThread) {

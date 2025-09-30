@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10.+'
+	id 'fabric-loom' version '1.11.+'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 	id 'com.matthewprenger.cursegradle' version '1.4.0'
@@ -41,10 +41,10 @@ dependencies {
 	//modCompileOnly fabricApi.module("fabric-api-base", project.fabric_version)
 	//modLocalRuntime fabricApi.module("fabric-api-base", project.fabric_version)
 
-	modImplementation include("eu.pb4:predicate-api:0.6.0+1.21.2")
-	modImplementation include("eu.pb4:placeholder-api:2.7.0+1.21.6")
-	modImplementation include("me.lucko:fabric-permissions-api:0.3.4-patbox")
-	modImplementation include("eu.pb4:player-data-api:0.8.0+1.21.6")
+	modImplementation include("eu.pb4:predicate-api:0.6.1+1.21.9")
+	modImplementation include("eu.pb4:placeholder-api:2.8.0+1.21.9")
+	modImplementation include("me.lucko:fabric-permissions-api:0.4.2-patbox.1")
+	modImplementation include("eu.pb4:player-data-api:0.9.0+1.21.9")
 
 	modCompileOnly("maven.modrinth:vanish:1.5.2+1.20.4")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")
@@ -126,7 +126,7 @@ curseforge {
 			releaseType = "release"
 			changelog = System.getenv("CHANGELOG")
 			changelogType = "markdown"
-			addGameVersion((project.minecraft_version.contains("-") ? ((String) project.minecraft_version.split("-")[0] + "-Snapshot") : project.minecraft_version))
+			addGameVersion((project.minecraft_version.contains("-") ? ((String) project.minecraft_version.split("-")[0] + "-snapshot") : project.minecraft_version))
 			addGameVersion "Fabric"
 			addGameVersion "Quilt"
 			mainArtifact(remapJar)
