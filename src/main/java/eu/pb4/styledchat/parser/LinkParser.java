@@ -12,16 +12,14 @@ import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import eu.pb4.placeholders.api.parsers.NodeParser;
 import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.ConfigManager;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 
 import static eu.pb4.styledchat.StyledChatUtils.URL_REGEX;
 
@@ -59,9 +57,9 @@ public record LinkParser(TextNode style) implements NodeParser {
                 }
 
 
-                var text = style.toText(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Text.literal(link), "link", Text.literal(link))::get));
+                var text = style.toText(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Component.literal(link), "link", Component.literal(link))::get));
 
-                list.add(new DirectTextNode(Text.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent.OpenUrl(uri)))));
+                list.add(new DirectTextNode(Component.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent.OpenUrl(uri)))));
 
                 currentPos = matcher.end();
             }

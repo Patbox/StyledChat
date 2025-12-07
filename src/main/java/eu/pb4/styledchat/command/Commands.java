@@ -15,24 +15,22 @@ import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.other.GenericModInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.IdentifierArgumentType;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class Commands {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registryAccess, net.minecraft.commands.Commands.CommandSelection environment) {
         dispatcher.register(
                 literal("styledchat")
                         .requires(Permissions.require("styledchat.main", true))
@@ -45,7 +43,7 @@ public class Commands {
 
                         .then(literal("set")
                                 .requires(Permissions.require("styledchat.set", 2))
-                                .then(fillWithProperties(argument("players", EntityArgumentType.players()),
+                                .then(fillWithProperties(argument("players", EntityArgument.players()),
                                         (x, p) -> x.then(argument("value", StringArgumentType.greedyString())
                                                 .executes((ctx) -> Commands.setProperty(ctx, p.apply(ctx)))
                                         ))
@@ -54,14 +52,14 @@ public class Commands {
 
                         .then(literal("get")
                                 .requires(Permissions.require("styledchat.get", 2))
-                                .then(fillWithProperties(argument("player", EntityArgumentType.player()),
+                                .then(fillWithProperties(argument("player", EntityArgument.player()),
                                         (x, p) -> x.executes((ctx) -> Commands.getProperty(ctx, p.apply(ctx)))
                                 ))
                         )
 
                         .then(literal("clear")
                                 .requires(Permissions.require("styledchat.clear", 3))
-                                .then(fillWithProperties(argument("players", EntityArgumentType.players()),
+                                .then(fillWithProperties(argument("players", EntityArgument.players()),
                                         (x, p) -> x.executes((ctx) -> Commands.clearProperty(ctx, p.apply(ctx)))
                                 ).then(literal("*").executes((ctx) -> Commands.clearProperty(ctx, null))))
                         )
@@ -71,11 +69,11 @@ public class Commands {
                 literal("tellform")
                         .requires(Permissions.require("styledchat.tellform", 2))
 
-                        .then(argument("targets", EntityArgumentType.players())
+                        .then(argument("targets", EntityArgument.players())
                                 .then(argument("message", StringArgumentType.greedyString())
                                         .executes((context) -> {
                                                     int i = 0;
-                                                    Text parsed;
+                                                    Component parsed;
 
 
                                                     parsed = Placeholders.parseText(
@@ -85,8 +83,8 @@ public class Commands {
                                                             PlaceholderContext.of(context.getSource())
                                                     );
 
-                                                    for (var player : EntityArgumentType.getPlayers(context, "targets")) {
-                                                        player.sendMessage(parsed);
+                                                    for (var player : EntityArgument.getPlayers(context, "targets")) {
+                                                        player.sendSystemMessage(parsed);
                                                     }
 
                                                     return i;
@@ -98,40 +96,40 @@ public class Commands {
 
     }
 
-    private static int getProperty(CommandContext<ServerCommandSource> context, ChatStyleData.PropertyGetSet propertyGetSet) throws CommandSyntaxException {
-        var player = EntityArgumentType.getPlayer(context, "player");
+    private static int getProperty(CommandContext<CommandSourceStack> context, ChatStyleData.PropertyGetSet propertyGetSet) throws CommandSyntaxException {
+        var player = EntityArgument.getPlayer(context, "player");
 
         var data = StyledChatUtils.getPersonalData(player);
 
         if (data == null) {
-            context.getSource().sendFeedback(() -> Text.literal("<not set>").formatted(Formatting.ITALIC), false);
+            context.getSource().sendSuccess(() -> Component.literal("<not set>").withStyle(ChatFormatting.ITALIC), false);
             return 0;
         } else {
             var val = propertyGetSet.get(data);
 
             if (val == null) {
-                context.getSource().sendFeedback(() -> Text.literal("<not set>").formatted(Formatting.ITALIC), false);
+                context.getSource().sendSuccess(() -> Component.literal("<not set>").withStyle(ChatFormatting.ITALIC), false);
                 return 0;
             }
 
-            context.getSource().sendFeedback(() -> Text.literal(val), false);
+            context.getSource().sendSuccess(() -> Component.literal(val), false);
             return 1;
         }
     }
 
-    private static int setProperty(CommandContext<ServerCommandSource> context, ChatStyleData.PropertyGetSet propertySet) throws CommandSyntaxException {
-        var players = EntityArgumentType.getPlayers(context, "players");
+    private static int setProperty(CommandContext<CommandSourceStack> context, ChatStyleData.PropertyGetSet propertySet) throws CommandSyntaxException {
+        var players = EntityArgument.getPlayers(context, "players");
         var val = StringArgumentType.getString(context, "value");
         for (var player : players) {
             propertySet.set(StyledChatUtils.getOrCreatePersonalData(player), val);
             StyledChatUtils.updateStyle(player);
         }
-        context.getSource().sendFeedback(() -> Text.literal("Changed style of " + players.size() + " player(s)"), false);
+        context.getSource().sendSuccess(() -> Component.literal("Changed style of " + players.size() + " player(s)"), false);
         return players.size();
     }
 
-    private static int clearProperty(CommandContext<ServerCommandSource> context, ChatStyleData.PropertyGetSet propertySet) throws CommandSyntaxException {
-        var players = EntityArgumentType.getPlayers(context, "players");
+    private static int clearProperty(CommandContext<CommandSourceStack> context, ChatStyleData.PropertyGetSet propertySet) throws CommandSyntaxException {
+        var players = EntityArgument.getPlayers(context, "players");
         for (var player : players) {
             if (propertySet != null) {
                 propertySet.set(StyledChatUtils.getOrCreatePersonalData(player), null);
@@ -140,11 +138,11 @@ public class Commands {
             }
             StyledChatUtils.updateStyle(player);
         }
-        context.getSource().sendFeedback(() -> Text.literal("Cleared style for " + players.size() + " player(s)"), false);
+        context.getSource().sendSuccess(() -> Component.literal("Cleared style for " + players.size() + " player(s)"), false);
         return players.size();
     }
 
-    private static ArgumentBuilder<ServerCommandSource, ?> fillWithProperties(ArgumentBuilder<ServerCommandSource, ?> base, BiConsumer<ArgumentBuilder<ServerCommandSource, ?>, Function<CommandContext<ServerCommandSource>, ChatStyleData.PropertyGetSet>> command) {
+    private static ArgumentBuilder<CommandSourceStack, ?> fillWithProperties(ArgumentBuilder<CommandSourceStack, ?> base, BiConsumer<ArgumentBuilder<CommandSourceStack, ?>, Function<CommandContext<CommandSourceStack>, ChatStyleData.PropertyGetSet>> command) {
         for (var prop : ChatStyleData.PROPERTIES.entrySet()) {
             var x = literal(prop.getKey());
             command.accept(x, (ctx) -> prop.getValue());
@@ -152,10 +150,10 @@ public class Commands {
         }
 
         {
-            var x = argument("id", IdentifierArgumentType.identifier())
+            var x = argument("id", IdentifierArgument.id())
                     .suggests((context, builder) -> {
-                        for (var id : context.getSource().getServer().getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getIds()) {
-                            if (!id.getNamespace().equals("minecraft") && !id.equals(StyledChatMod.MESSAGE_TYPE_ID.getValue())) {
+                        for (var id : context.getSource().getServer().registryAccess().lookupOrThrow(Registries.CHAT_TYPE).keySet()) {
+                            if (!id.getNamespace().equals("minecraft") && !id.equals(StyledChatMod.MESSAGE_TYPE_ID.identifier())) {
                                 builder.suggest(id.toString());
                             }
                         }
@@ -163,30 +161,30 @@ public class Commands {
                         return builder.buildFuture();
                     });
 
-            command.accept(x, (ctx) -> ChatStyleData.PropertyGetSet.ofCustom(IdentifierArgumentType.getIdentifier(ctx, "id").toString()));
+            command.accept(x, (ctx) -> ChatStyleData.PropertyGetSet.ofCustom(IdentifierArgument.getId(ctx, "id").toString()));
             base = base.then(literal("custom").then(x));
         }
 
         return base;
     }
 
-    private static int reloadConfig(CommandContext<ServerCommandSource> context) {
+    private static int reloadConfig(CommandContext<CommandSourceStack> context) {
         var old = ConfigManager.getConfig().allPossibleAutoCompletionKeys;
-        if (ConfigManager.loadConfig(context.getSource().getRegistryManager())) {
-            context.getSource().sendFeedback(() -> Text.literal("Reloaded config!"), false);
+        if (ConfigManager.loadConfig(context.getSource().registryAccess())) {
+            context.getSource().sendSuccess(() -> Component.literal("Reloaded config!"), false);
 
-            for (var player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
+            for (var player : context.getSource().getServer().getPlayerList().getPlayers()) {
                 StyledChatUtils.sendAutoCompletion(player, old);
             }
         } else {
-            context.getSource().sendError(Text.literal("Error occurred while reloading config! Check console for more information!").formatted(Formatting.RED));
+            context.getSource().sendFailure(Component.literal("Error occurred while reloading config! Check console for more information!").withStyle(ChatFormatting.RED));
         }
         return 1;
     }
 
-    private static int about(CommandContext<ServerCommandSource> context) {
-        for (var text : context.getSource().getEntity() instanceof ServerPlayerEntity ? GenericModInfo.getAboutFull() : GenericModInfo.getAboutConsole()) {
-            context.getSource().sendFeedback(() -> text, false);
+    private static int about(CommandContext<CommandSourceStack> context) {
+        for (var text : context.getSource().getEntity() instanceof ServerPlayer ? GenericModInfo.getAboutFull() : GenericModInfo.getAboutConsole()) {
+            context.getSource().sendSuccess(() -> text, false);
         }
 
 

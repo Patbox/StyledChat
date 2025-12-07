@@ -3,19 +3,19 @@ package eu.pb4.styledchat;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.config.ConfigManager;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.TamableAnimal;
 
 public final class StyledChatStyles {
-    public static Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
+    public static Component getDisplayName(ServerPlayer player, Component vanillaDisplayName) {
         var style = StyledChatUtils.getPersonalStyle(player).getDisplayName(player, vanillaDisplayName);
         if (style != null) {
             return style;
@@ -24,7 +24,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getDisplayName(player, vanillaDisplayName);
     }
 
-    public static Text getChat(ServerPlayerEntity player, Text message) {
+    public static Component getChat(ServerPlayer player, Component message) {
         var style = StyledChatUtils.getPersonalStyle(player).getChat(player, message);
         if (style != null) {
             return style;
@@ -33,7 +33,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getChat(player, message);
     }
 
-    public static Text getJoin(ServerPlayerEntity player) {
+    public static Component getJoin(ServerPlayer player) {
         var style = StyledChatUtils.getPersonalStyle(player).getJoin(player);
         if (style != null) {
             return style;
@@ -42,7 +42,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getJoin(player);
     }
 
-    public static Text getJoinFirstTime(ServerPlayerEntity player) {
+    public static Component getJoinFirstTime(ServerPlayer player) {
         var style = StyledChatUtils.getPersonalStyle(player).getJoinFirstTime(player);
         if (style != null) {
             return style;
@@ -51,7 +51,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getJoinFirstTime(player);
     }
 
-    public static Text getJoinRenamed(ServerPlayerEntity player, String oldName) {
+    public static Component getJoinRenamed(ServerPlayer player, String oldName) {
         var style = StyledChatUtils.getPersonalStyle(player).getJoinRenamed(player, oldName);
         if (style != null) {
             return style;
@@ -60,7 +60,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getJoinRenamed(player, oldName);
     }
 
-    public static Text getLeft(ServerPlayerEntity player) {
+    public static Component getLeft(ServerPlayer player) {
         var style = StyledChatUtils.getPersonalStyle(player).getLeft(player);
         if (style != null) {
             return style;
@@ -69,7 +69,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getLeft(player);
     }
 
-    public static Text getDeath(ServerPlayerEntity player, Text vanillaMessage) {
+    public static Component getDeath(ServerPlayer player, Component vanillaMessage) {
         var style = StyledChatUtils.getPersonalStyle(player).getDeath(player, vanillaMessage);
         if (style != null) {
             return style;
@@ -78,7 +78,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getDeath(player, vanillaMessage);
     }
 
-    public static Text getAdvancementTask(ServerPlayerEntity player, Text advancement) {
+    public static Component getAdvancementTask(ServerPlayer player, Component advancement) {
         var style = StyledChatUtils.getPersonalStyle(player).getAdvancementTask(player, advancement);
         if (style != null) {
             return style;
@@ -87,7 +87,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getAdvancementTask(player, advancement);
     }
 
-    public static Text getAdvancementGoal(ServerPlayerEntity player, Text advancement) {
+    public static Component getAdvancementGoal(ServerPlayer player, Component advancement) {
         var style = StyledChatUtils.getPersonalStyle(player).getAdvancementGoal(player, advancement);
         if (style != null) {
             return style;
@@ -96,7 +96,7 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getAdvancementGoal(player, advancement);
     }
 
-    public static Text getAdvancementChallenge(ServerPlayerEntity player, Text advancement) {
+    public static Component getAdvancementChallenge(ServerPlayer player, Component advancement) {
         var style = StyledChatUtils.getPersonalStyle(player).getAdvancementChallenge(player, advancement);
         if (style != null) {
             return style;
@@ -105,8 +105,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getAdvancementChallenge(player, advancement);
     }
 
-    public static Text getSayCommand(ServerCommandSource source, Text message) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getSayCommand(CommandSourceStack source, Component message) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getSayCommand(source, message);
             if (style != null) {
                 return style;
@@ -116,8 +116,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getSayCommand(source, message);
     }
 
-    public static Text getMeCommand(ServerCommandSource source, Text message) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getMeCommand(CommandSourceStack source, Component message) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getMeCommand(source, message);
             if (style != null) {
                 return style;
@@ -127,8 +127,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getMeCommand(source, message);
     }
 
-    public static Text getPrivateMessageSent(Text sender, Text receiver, Text message, ServerCommandSource source) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getPrivateMessageSent(Component sender, Component receiver, Component message, CommandSourceStack source) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageSent(sender, receiver, message, PlaceholderContext.of(source));
             if (style != null) {
                 return style;
@@ -138,8 +138,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getPrivateMessageSent(sender, receiver, message, source);
     }
 
-    public static Text getPrivateMessageReceived(Text sender, Text receiver, Text message, ServerCommandSource source) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getPrivateMessageReceived(Component sender, Component receiver, Component message, CommandSourceStack source) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageReceived(sender, receiver, message, PlaceholderContext.of(source));
             if (style != null) {
                 return style;
@@ -148,8 +148,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getPrivateMessageReceived(sender, receiver, message, source);
     }
 
-    public static Text getTeamChatSent(Text team, Text displayName, Text message, ServerCommandSource source) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getTeamChatSent(Component team, Component displayName, Component message, CommandSourceStack source) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getTeamChatSent(team, displayName, message, source);
             if (style != null) {
                 return style;
@@ -159,8 +159,8 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getTeamChatSent(team, displayName, message, source);
     }
 
-    public static Text getTeamChatReceived(Text team, Text displayName, Text message, ServerCommandSource source) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getTeamChatReceived(Component team, Component displayName, Component message, CommandSourceStack source) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getTeamChatReceived(team, displayName, message, source);
             if (style != null) {
                 return style;
@@ -170,17 +170,17 @@ public final class StyledChatStyles {
         return ConfigManager.getConfig().getTeamChatReceived(team, displayName, message, source);
     }
 
-    public static Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
+    public static Component getPetDeath(TamableAnimal entity, Component vanillaMessage) {
         return ConfigManager.getConfig().getPetDeath(entity, vanillaMessage);
     }
 
-    public static Map<String, TextNode> getEmotes(ServerCommandSource source) {
+    public static Map<String, TextNode> getEmotes(CommandSourceStack source) {
         return ConfigManager.getConfig().getEmotes(source);
 
     }
 
-    public static Text getCustom(Identifier identifier, Text displayName, Text message, Text receiver, ServerCommandSource source) {
-        if (source.isExecutedByPlayer()) {
+    public static Component getCustom(Identifier identifier, Component displayName, Component message, Component receiver, CommandSourceStack source) {
+        if (source.isPlayer()) {
             var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getCustom(identifier, displayName, message, receiver, source);
             if (style != null) {
                 return style;
@@ -193,24 +193,24 @@ public final class StyledChatStyles {
             return out;
         }
 
-        var type = source.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).get(identifier);
+        var type = source.registryAccess().lookupOrThrow(Registries.CHAT_TYPE).getValue(identifier);
 
         if (type == null) {
-            return Text.empty();
+            return Component.empty();
         }
 
-        var optional = source.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getKey(type);
+        var optional = source.registryAccess().lookupOrThrow(Registries.CHAT_TYPE).getResourceKey(type);
 
         if (optional.isEmpty()) {
-            return Text.empty();
+            return Component.empty();
         }
-        var params = MessageType.params(optional.get(), source.getRegistryManager(), displayName);
+        var params = ChatType.bind(optional.get(), source.registryAccess(), displayName);
 
         if (receiver != null) {
             params = params.withTargetName(receiver);
         }
 
 
-        return type.chat().apply(message, params);
+        return type.chat().decorate(message, params);
     }
 }

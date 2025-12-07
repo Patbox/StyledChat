@@ -7,12 +7,11 @@ import eu.pb4.styledchat.other.GenericModInfo;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,7 +23,7 @@ public class StyledChatMod implements ModInitializer {
 
 	public static boolean USE_FABRIC_API = true;
 
-	public static RegistryKey<MessageType> MESSAGE_TYPE_ID = RegistryKey.of(RegistryKeys.MESSAGE_TYPE, Identifier.of("styled_chat", "generic_hack"));
+	public static ResourceKey<ChatType> MESSAGE_TYPE_ID = ResourceKey.create(Registries.CHAT_TYPE, Identifier.fromNamespaceAndPath("styled_chat", "generic_hack"));
 
 	@Override
 	public void onInitialize() {
@@ -37,7 +36,7 @@ public class StyledChatMod implements ModInitializer {
 
 	public static void serverStarting(MinecraftServer s) {
 		crabboardDetection();
-		ConfigManager.loadConfig(s.getRegistryManager());
+		ConfigManager.loadConfig(s.registryAccess());
 		server = s;
 	}
 

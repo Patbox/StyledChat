@@ -15,20 +15,20 @@ import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.TamableAnimal;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ChatStyle {
-    public static final ParserContext.Key<Function<String, Text>> DYN_KEY = DynamicTextNode.key("styled_chat");
+    public static final ParserContext.Key<Function<String, Component>> DYN_KEY = DynamicTextNode.key("styled_chat");
     public static final ChatStyle EMPTY = new ChatStyle(new ChatStyleData());
     public static final NodeParser PARSER = NodeParser.builder()
             .simplifiedTextFormat()
@@ -253,7 +253,7 @@ public class ChatStyle {
         }
     }
 
-    public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
+    public Component getDisplayName(ServerPlayer player, Component vanillaDisplayName) {
         if (this.displayName == null) {
             return null;
         } else if (this.displayName == EmptyNode.INSTANCE) {
@@ -265,7 +265,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getChat(ServerPlayerEntity player, Text message) {
+    public Component getChat(ServerPlayer player, Component message) {
         if (this.chat == null) {
             return null;
         } else if (this.chat == EmptyNode.INSTANCE) {
@@ -278,7 +278,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getJoin(ServerPlayerEntity player) {
+    public Component getJoin(ServerPlayer player) {
         if (this.join == null) {
             return null;
         } else if (this.join == EmptyNode.INSTANCE) {
@@ -289,7 +289,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getJoinFirstTime(ServerPlayerEntity player) {
+    public Component getJoinFirstTime(ServerPlayer player) {
         if (this.joinFirstTime == null) {
             return null;
         } else if (this.joinFirstTime == EmptyNode.INSTANCE) {
@@ -300,18 +300,18 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getJoinRenamed(ServerPlayerEntity player, String oldName) {
+    public Component getJoinRenamed(ServerPlayer player, String oldName) {
         if (this.joinRenamed == null) {
             return null;
         } else if (this.joinRenamed == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "old_name", Text.literal(oldName))::get));
+        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "old_name", Component.literal(oldName))::get));
     }
 
     @Nullable
-    public Text getLeft(ServerPlayerEntity player) {
+    public Component getLeft(ServerPlayer player) {
         if (this.left == null) {
             return null;
         } else if (this.left == EmptyNode.INSTANCE) {
@@ -322,7 +322,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getDeath(ServerPlayerEntity player, Text vanillaMessage) {
+    public Component getDeath(ServerPlayer player, Component vanillaMessage) {
         if (this.death == null) {
             return null;
         } else if (this.death == EmptyNode.INSTANCE) {
@@ -333,7 +333,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getAdvancementGoal(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementGoal(ServerPlayer player, Component advancement) {
         if (this.advancementGoal == null) {
             return null;
         } else if (this.advancementGoal == EmptyNode.INSTANCE) {
@@ -344,7 +344,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getAdvancementTask(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementTask(ServerPlayer player, Component advancement) {
         if (this.advancementTask == null) {
             return null;
         } else if (this.advancementTask == EmptyNode.INSTANCE) {
@@ -355,7 +355,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getAdvancementChallenge(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementChallenge(ServerPlayer player, Component advancement) {
         if (this.advancementChallenge == null) {
             return null;
         } else if (this.advancementChallenge == EmptyNode.INSTANCE) {
@@ -366,7 +366,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getSayCommand(ServerCommandSource source, Text message) {
+    public Component getSayCommand(CommandSourceStack source, Component message) {
         if (this.sayCommand == null) {
             return null;
         } else if (this.sayCommand == EmptyNode.INSTANCE) {
@@ -377,7 +377,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getMeCommand(ServerCommandSource source, Text message) {
+    public Component getMeCommand(CommandSourceStack source, Component message) {
         if (this.meCommand == null) {
             return null;
         } else if (this.meCommand == EmptyNode.INSTANCE) {
@@ -389,7 +389,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getPrivateMessageSent(Text sender, Text receiver, Text message, PlaceholderContext context) {
+    public Component getPrivateMessageSent(Component sender, Component receiver, Component message, PlaceholderContext context) {
         if (this.privateMessageSent == null) {
             return null;
         } else if (this.privateMessageSent == EmptyNode.INSTANCE) {
@@ -400,7 +400,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, PlaceholderContext context) {
+    public Component getPrivateMessageReceived(Component sender, Component receiver, Component message, PlaceholderContext context) {
         if (this.privateMessageReceived == null) {
             return null;
         } else if (this.privateMessageReceived == EmptyNode.INSTANCE) {
@@ -411,7 +411,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getTeamChatSent(Text team, Text displayName, Text message, ServerCommandSource context) {
+    public Component getTeamChatSent(Component team, Component displayName, Component message, CommandSourceStack context) {
         if (this.teamChatSent == null) {
             return null;
         } else if (this.teamChatSent == EmptyNode.INSTANCE) {
@@ -422,7 +422,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getTeamChatReceived(Text team, Text displayName, Text message, ServerCommandSource context) {
+    public Component getTeamChatReceived(Component team, Component displayName, Component message, CommandSourceStack context) {
         if (this.teamChatReceived == null) {
             return null;
         } else if (this.teamChatReceived == EmptyNode.INSTANCE) {
@@ -433,7 +433,7 @@ public class ChatStyle {
     }
 
     @Nullable
-    public Text getCustom(Identifier identifier, Text displayName, Text message, @Nullable Text receiver, ServerCommandSource source) {
+    public Component getCustom(Identifier identifier, Component displayName, Component message, @Nullable Component receiver, CommandSourceStack source) {
         var node = this.custom.get(identifier);
 
         if (node == null) {
@@ -442,7 +442,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return node.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("receiver", receiver == null ? Text.empty() : receiver, "displayName", displayName, "message", message)::get));
+        return node.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("receiver", receiver == null ? Component.empty() : receiver, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -465,7 +465,7 @@ public class ChatStyle {
         return this.spoilerSymbol;
     }
 
-    public Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
+    public Component getPetDeath(TamableAnimal entity, Component vanillaMessage) {
         if (this.petDeath == null) {
             return null;
         }

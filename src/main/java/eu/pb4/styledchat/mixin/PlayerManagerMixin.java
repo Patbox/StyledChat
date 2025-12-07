@@ -3,17 +3,17 @@ package eu.pb4.styledchat.mixin;
 import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
-import eu.pb4.styledchat.ducks.ExtSignedMessage;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
+import eu.pb4.styledchat.ducks.ExtPlayerChatMessage;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.stats.Stats;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,32 +25,32 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public class PlayerManagerMixin {
 
     @Shadow
     @Final
     private MinecraftServer server;
     @Unique
-    private ServerPlayerEntity styledChat_temporaryPlayer = null;
+    private ServerPlayer styledChat_temporaryPlayer = null;
 
-    @Inject(method = "onPlayerConnect", at = @At(value = "HEAD"))
-    private void styledChat_storePlayer(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+    @Inject(method = "placeNewPlayer", at = @At(value = "HEAD"))
+    private void styledChat_storePlayer(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
         this.styledChat_temporaryPlayer = player;
     }
 
-    @Inject(method = "onPlayerConnect", at = @At("RETURN"))
-    private void styledChat_removeStoredPlayer(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+    @Inject(method = "placeNewPlayer", at = @At("RETURN"))
+    private void styledChat_removeStoredPlayer(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
         this.styledChat_temporaryPlayer = null;
     }
 
-    @ModifyArg(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
-    private Text styledChat_updatePlayerNameAfterMessage(Text text) {
-        if (this.styledChat_temporaryPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Stats.LEAVE_GAME)) == 0) {
+    @ModifyArg(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))
+    private Component styledChat_updatePlayerNameAfterMessage(Component text) {
+        if (this.styledChat_temporaryPlayer.getStats().getValue(Stats.CUSTOM.get(Stats.LEAVE_GAME)) == 0) {
             return StyledChatStyles.getJoinFirstTime(this.styledChat_temporaryPlayer);
         }
 
-        Object[] args = ((TranslatableTextContent) text.getContent()).getArgs();
+        Object[] args = ((TranslatableContents) text.getContents()).getArgs();
         if (args.length == 1) {
             return StyledChatStyles.getJoin(this.styledChat_temporaryPlayer);
         } else {
@@ -58,17 +58,17 @@ public class PlayerManagerMixin {
         }
     }
 
-    @Inject(method = "sendCommandTree(Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("HEAD"))
-    private void styledChat_sendTree(ServerPlayerEntity player, CallbackInfo ci) {
+    @Inject(method = "sendPlayerPermissionLevel(Lnet/minecraft/server/level/ServerPlayer;)V", at = @At("HEAD"))
+    private void styledChat_sendTree(ServerPlayer player, CallbackInfo ci) {
         StyledChatUtils.sendAutoCompletion(player, ConfigManager.getConfig().allPossibleAutoCompletionKeys);
     }
 
-    @Redirect(method = "broadcast(Lnet/minecraft/network/message/SignedMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/network/message/MessageType$Parameters;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageType$Parameters;Ljava/lang/String;)V"), require = 0)
-    private void styledChat_fixServerLogs(MinecraftServer instance, Text text, MessageType.Parameters parameters, String string, SignedMessage signedMessage) {
-        var out = ((ExtSignedMessage) (Object) signedMessage).styledChat_getArg("override");
+    @Redirect(method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/ChatType$Bound;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;logChatMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/ChatType$Bound;Ljava/lang/String;)V"), require = 0)
+    private void styledChat_fixServerLogs(MinecraftServer instance, Component text, ChatType.Bound parameters, String string, PlayerChatMessage signedMessage) {
+        var out = ((ExtPlayerChatMessage) (Object) signedMessage).styledChat_getArg("override");
         if (out != null) {
             if (out != StyledChatUtils.IGNORED_TEXT) {
-                this.server.sendMessage(out);
+                this.server.sendSystemMessage(out);
             }
         } else {
             this.server.logChatMessage(text, parameters, string);

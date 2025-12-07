@@ -4,8 +4,8 @@ package eu.pb4.styledchat.config.data;
 import com.google.gson.annotations.SerializedName;
 import eu.pb4.styledchat.StyledChatUtils;
 import me.lucko.fabric.api.permissions.v0.Options;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -103,7 +103,7 @@ public class ChatStyleData implements Cloneable {
     }
 
 
-    public void fillPermissionOptionProvider(ServerCommandSource source) {
+    public void fillPermissionOptionProvider(CommandSourceStack source) {
         for (var prop : PROPERTIES.entrySet()) {
             if (prop.getValue().get(this) == null) {
                 var value = Options.get(source, "styled_chat." + prop.getKey());
@@ -148,7 +148,7 @@ public class ChatStyleData implements Cloneable {
             data.formatting.put("strikethrough", true);
             data.formatting.put("underline", true);
 
-            for (var formatting : Formatting.values()) {
+            for (var formatting : ChatFormatting.values()) {
                 if (formatting.isColor()) {
                     data.formatting.put(formatting.getName(), true);
                 }

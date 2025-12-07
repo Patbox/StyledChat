@@ -3,9 +3,8 @@ package eu.pb4.styledchat.config.data.old;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.config.data.ConfigData;
-import net.minecraft.util.Pair;
-
 import java.util.*;
+import net.minecraft.util.Tuple;
 
 public class ConfigDataV2 {
     public static final int VERSION = 2;
@@ -56,39 +55,39 @@ public class ConfigDataV2 {
         data.formatting.respectColors = this.allowModdedDecorators;
         data.formatting.parseLinksInChat = this.parseLinksInChat;
 
-        var pairs = new ArrayList<Pair<PermissionPriorityStyle, PermissionEmotes>>();
+        var pairs = new ArrayList<Tuple<PermissionPriorityStyle, PermissionEmotes>>();
 
         for (var x : this.permissionStyles) {
-            pairs.add(new Pair<>(x, null));
+            pairs.add(new Tuple<>(x, null));
         }
 
         for (var x : this.permissionEmoticons) {
             boolean hasPair = false;
             for (var pair : pairs) {
-                if (pair.getRight() == null && pair.getLeft().opLevel == x.opLevel && pair.getLeft().permission.equals(x.permission)) {
+                if (pair.getB() == null && pair.getA().opLevel == x.opLevel && pair.getA().permission.equals(x.permission)) {
                     hasPair = true;
-                    pair.setRight(x);
+                    pair.setB(x);
                     break;
                 }
             }
 
             if (!hasPair) {
-                pairs.add(new Pair<>(null, x));
+                pairs.add(new Tuple<>(null, x));
             }
         }
 
         for (var pair : pairs) {
             var style = new ConfigData.RequireChatStyleData();
 
-            if (pair.getLeft() != null) {
-                style.require = createRequire(pair.getLeft().permission, pair.getLeft().opLevel);
-                pair.getLeft().style.copyInto(style);
+            if (pair.getA() != null) {
+                style.require = createRequire(pair.getA().permission, pair.getA().opLevel);
+                pair.getA().style.copyInto(style);
             } else {
-                style.require = createRequire(pair.getRight().permission, pair.getRight().opLevel);
+                style.require = createRequire(pair.getB().permission, pair.getB().opLevel);
             }
 
-            if (pair.getRight() != null) {
-                style.emoticons.putAll(pair.getRight().emoticons);
+            if (pair.getB() != null) {
+                style.emoticons.putAll(pair.getB().emoticons);
             }
 
             data.permissionStyles.add(style);

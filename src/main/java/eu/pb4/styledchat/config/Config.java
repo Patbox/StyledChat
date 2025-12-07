@@ -10,14 +10,14 @@ import eu.pb4.predicate.api.PredicateContext;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.TamableAnimal;
 
 public final class Config {
     public static final Config DEFAULT = new Config(new ConfigData());
@@ -61,11 +61,11 @@ public final class Config {
         }
     }
 
-    public Text getDisplayName(ServerPlayerEntity player, Text vanillaDisplayName) {
+    public Component getDisplayName(ServerPlayer player, Component vanillaDisplayName) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getDisplayName(player, vanillaDisplayName);
+                Component text = entry.getDisplayName(player, vanillaDisplayName);
                 if (text != null) {
                     return text;
                 }
@@ -74,11 +74,11 @@ public final class Config {
         return this.defaultStyle.getDisplayName(player, vanillaDisplayName);
     }
 
-    public Text getChat(ServerPlayerEntity player, Text message) {
+    public Component getChat(ServerPlayer player, Component message) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getChat(player, message);
+                Component text = entry.getChat(player, message);
                 if (text != null) {
                     return text;
                 }
@@ -87,11 +87,11 @@ public final class Config {
         return this.defaultStyle.getChat(player, message);
     }
 
-    public Text getJoin(ServerPlayerEntity player) {
+    public Component getJoin(ServerPlayer player) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getJoin(player);
+                Component text = entry.getJoin(player);
                 if (text != null) {
                     return text;
                 }
@@ -100,28 +100,28 @@ public final class Config {
         return this.defaultStyle.getJoin(player);
     }
 
-    public Text getJoinFirstTime(ServerPlayerEntity player) {
+    public Component getJoinFirstTime(ServerPlayer player) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getJoinFirstTime(player);
+                Component text = entry.getJoinFirstTime(player);
                 if (text != null) {
                     return text;
                 }
             }
         }
-        Text text = this.defaultStyle.getJoinFirstTime(player);
+        Component text = this.defaultStyle.getJoinFirstTime(player);
         if (text != null) {
             return text;
         }
         return this.getJoin(player);
     }
 
-    public Text getJoinRenamed(ServerPlayerEntity player, String oldName) {
+    public Component getJoinRenamed(ServerPlayer player, String oldName) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getJoinRenamed(player, oldName);
+                Component text = entry.getJoinRenamed(player, oldName);
                 if (text != null) {
                     return text;
                 }
@@ -130,11 +130,11 @@ public final class Config {
         return this.defaultStyle.getJoinRenamed(player, oldName);
     }
 
-    public Text getLeft(ServerPlayerEntity player) {
+    public Component getLeft(ServerPlayer player) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getLeft(player);
+                Component text = entry.getLeft(player);
                 if (text != null) {
                     return text;
                 }
@@ -143,11 +143,11 @@ public final class Config {
         return this.defaultStyle.getLeft(player);
     }
 
-    public Text getDeath(ServerPlayerEntity player, Text vanillaMessage) {
+    public Component getDeath(ServerPlayer player, Component vanillaMessage) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getDeath(player, vanillaMessage);
+                Component text = entry.getDeath(player, vanillaMessage);
                 if (text != null) {
                     return text;
                 }
@@ -156,11 +156,11 @@ public final class Config {
         return this.defaultStyle.getDeath(player, vanillaMessage);
     }
 
-    public Text getAdvancementTask(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementTask(ServerPlayer player, Component advancement) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getAdvancementTask(player, advancement);
+                Component text = entry.getAdvancementTask(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -169,11 +169,11 @@ public final class Config {
         return this.defaultStyle.getAdvancementTask(player, advancement);
     }
 
-    public Text getAdvancementGoal(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementGoal(ServerPlayer player, Component advancement) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getAdvancementGoal(player, advancement);
+                Component text = entry.getAdvancementGoal(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -182,11 +182,11 @@ public final class Config {
         return this.defaultStyle.getAdvancementGoal(player, advancement);
     }
 
-    public Text getAdvancementChallenge(ServerPlayerEntity player, Text advancement) {
+    public Component getAdvancementChallenge(ServerPlayer player, Component advancement) {
         var context = PredicateContext.of(player);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getAdvancementChallenge(player, advancement);
+                Component text = entry.getAdvancementChallenge(player, advancement);
                 if (text != null) {
                     return text;
                 }
@@ -195,11 +195,11 @@ public final class Config {
         return this.defaultStyle.getAdvancementChallenge(player, advancement);
     }
 
-    public Text getSayCommand(ServerCommandSource source, Text message) {
+    public Component getSayCommand(CommandSourceStack source, Component message) {
         var context = PredicateContext.of(source);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getSayCommand(source, message);
+                Component text = entry.getSayCommand(source, message);
                 if (text != null) {
                     return text;
                 }
@@ -208,11 +208,11 @@ public final class Config {
         return this.defaultStyle.getSayCommand(source, message);
     }
 
-    public Text getMeCommand(ServerCommandSource source, Text message) {
+    public Component getMeCommand(CommandSourceStack source, Component message) {
         var context = PredicateContext.of(source);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context).success()) {
-                Text text = entry.getMeCommand(source, message);
+                Component text = entry.getMeCommand(source, message);
                 if (text != null) {
                     return text;
                 }
@@ -221,13 +221,13 @@ public final class Config {
         return this.defaultStyle.getMeCommand(source, message);
     }
 
-    public Text getPrivateMessageSent(Text sender, Text receiver, Text message, ServerCommandSource context) {
+    public Component getPrivateMessageSent(Component sender, Component receiver, Component message, CommandSourceStack context) {
         var placeholderContext = PlaceholderContext.of(context);
 
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
-                Text text = entry.getPrivateMessageSent(sender, receiver, message, placeholderContext);
+                Component text = entry.getPrivateMessageSent(sender, receiver, message, placeholderContext);
                 if (text != null) {
                     return text;
                 }
@@ -236,13 +236,13 @@ public final class Config {
         return this.defaultStyle.getPrivateMessageSent(sender, receiver, message, placeholderContext);
     }
 
-    public Text getPrivateMessageReceived(Text sender, Text receiver, Text message, ServerCommandSource context) {
+    public Component getPrivateMessageReceived(Component sender, Component receiver, Component message, CommandSourceStack context) {
         var placeholderContext = PlaceholderContext.of(context);
 
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
-                Text text = entry.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
+                Component text = entry.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
                 if (text != null) {
                     return text;
                 }
@@ -251,11 +251,11 @@ public final class Config {
         return this.defaultStyle.getPrivateMessageReceived(sender, receiver, message, placeholderContext);
     }
 
-    public Text getTeamChatSent(Text team, Text displayName, Text message, ServerCommandSource context) {
+    public Component getTeamChatSent(Component team, Component displayName, Component message, CommandSourceStack context) {
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
-                Text text = entry.getTeamChatSent(team, displayName, message, context);
+                Component text = entry.getTeamChatSent(team, displayName, message, context);
                 if (text != null) {
                     return text;
                 }
@@ -264,11 +264,11 @@ public final class Config {
         return this.defaultStyle.getTeamChatSent(team, displayName, message, context);
     }
 
-    public Text getTeamChatReceived(Text team, Text displayName, Text message, ServerCommandSource context) {
+    public Component getTeamChatReceived(Component team, Component displayName, Component message, CommandSourceStack context) {
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
-                Text text = entry.getTeamChatReceived(team, displayName, message, context);
+                Component text = entry.getTeamChatReceived(team, displayName, message, context);
                 if (text != null) {
                     return text;
                 }
@@ -329,7 +329,7 @@ public final class Config {
         return this.defaultStyle.getMention();
     }
 
-    public Text getPetDeath(TameableEntity entity, Text vanillaMessage) {
+    public Component getPetDeath(TamableAnimal entity, Component vanillaMessage) {
         var context2 = PredicateContext.of(entity);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
@@ -342,7 +342,7 @@ public final class Config {
         return this.defaultStyle.getPetDeath(entity, vanillaMessage);
     }
 
-    public Map<String, TextNode> getEmotes(ServerCommandSource source) {
+    public Map<String, TextNode> getEmotes(CommandSourceStack source) {
         var base = new HashMap<>(this.defaultStyle.emoticons);
         var context = PredicateContext.of(source);
 
@@ -359,7 +359,7 @@ public final class Config {
         return base;
     }
 
-    public Object2BooleanOpenHashMap<String> getAllowedFormatting(ServerCommandSource source) {
+    public Object2BooleanOpenHashMap<String> getAllowedFormatting(CommandSourceStack source) {
         var base = new Object2BooleanOpenHashMap<>(this.defaultStyle.formatting);
         var context = PredicateContext.of(source);
 
@@ -377,7 +377,7 @@ public final class Config {
     }
 
     @Nullable
-    public Text getCustom(Identifier identifier, Text displayName, Text message, @Nullable Text receiver, ServerCommandSource source) {
+    public Component getCustom(Identifier identifier, Component displayName, Component message, @Nullable Component receiver, CommandSourceStack source) {
         var context2 = PredicateContext.of(source);
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {

@@ -5,17 +5,16 @@ import eu.pb4.styledchat.StyledChatUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.PlayerChatMessage;
-import net.minecraft.server.commands.SayCommand;
+import net.minecraft.server.commands.EmoteCommands;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-
-@Mixin(SayCommand.class)
-public class SayCommandMixin {
-    @Inject(method = "method_43657", at = @At("HEAD"))
+@Mixin(EmoteCommands.class)
+public class EmoteCommandMixin {
+    @Inject(method = "method_43645", at = @At("HEAD"))
     private static void styledChat_formatText(CommandContext<CommandSourceStack> commandContext, PlayerChatMessage signedMessage, CallbackInfo ci) {
-        StyledChatUtils.modifyForSending(signedMessage, commandContext.getSource(), ChatType.SAY_COMMAND);
+        StyledChatUtils.modifyForSending(signedMessage, commandContext.getSource(), ChatType.EMOTE_COMMAND);
     }
 }

@@ -11,8 +11,7 @@ import eu.pb4.styledchat.config.data.ConfigData;
 import eu.pb4.styledchat.config.data.VersionConfigData;
 import eu.pb4.styledchat.config.data.old.ConfigDataV2;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.core.HolderLookup;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -36,7 +35,7 @@ public class ConfigManager {
         config = null;
     }
 
-    public static boolean loadConfig(RegistryWrapper.WrapperLookup lookup) {
+    public static boolean loadConfig(HolderLookup.Provider lookup) {
         config = null;
         try {
             var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient()

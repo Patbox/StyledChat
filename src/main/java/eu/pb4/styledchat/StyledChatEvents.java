@@ -5,7 +5,7 @@ import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.parsers.TextParserV1;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 public class StyledChatEvents {
     /**
@@ -42,7 +42,7 @@ public class StyledChatEvents {
 
     @Deprecated(forRemoval = true)
     public interface FormattingCreationEvent {
-        void onFormattingBuild(ServerCommandSource player, TextParserV1 builder);
+        void onFormattingBuild(CommandSourceStack player, TextParserV1 builder);
     }
 
     public interface PreMessageEvent {

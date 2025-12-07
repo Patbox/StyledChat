@@ -9,8 +9,7 @@ import eu.pb4.placeholders.api.node.parent.ParentTextNode;
 import eu.pb4.placeholders.api.parsers.NodeParser;
 import me.drex.vanish.api.VanishAPI;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.network.ServerPlayerEntity;
-
+import net.minecraft.server.level.ServerPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -38,11 +37,11 @@ public record MentionParser(TextNode style, PlaceholderContext context) implemen
 
     public TextNode[] parseInput(String input) {
         if (input.isEmpty()) return new TextNode[]{};
-        for (ServerPlayerEntity player : context.server().getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : context.server().getPlayerList().getPlayers()) {
             if (VANISH && VanishAPI.isVanished(player)) continue;
-            int startPos = input.indexOf(player.getNameForScoreboard());
+            int startPos = input.indexOf(player.getScoreboardName());
             if (startPos != -1) {
-                int endPos = startPos + player.getNameForScoreboard().length();
+                int endPos = startPos + player.getScoreboardName().length();
                 TextNode[] before = parseInput(input.substring(0, startPos));
                 TextNode mention = new DirectTextNode(style.toText(PlaceholderContext.of(player)));
                 TextNode[] after = parseInput(input.substring(Math.min(endPos, input.length())));

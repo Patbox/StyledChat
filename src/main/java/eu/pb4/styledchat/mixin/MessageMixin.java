@@ -1,25 +1,19 @@
 package eu.pb4.styledchat.mixin;
 
-import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtMessageFormat;
-import eu.pb4.styledchat.StyledChatUtils;
-import net.minecraft.command.argument.MessageArgumentType;
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.MessageArgument;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.function.BiFunction;
 
-@Mixin(MessageArgumentType.MessageFormat.class)
-public class MessageFormatMixin implements ExtMessageFormat {
+@Mixin(MessageArgument.Message.class)
+public class MessageMixin implements ExtMessageFormat {
     @Unique
     private String styledChat_context;
     @Unique
-    private ServerCommandSource styledChat_source;
+    private CommandSourceStack styledChat_source;
     private BiFunction<String, Class<?>, Object> styledChat_args;
 
     /*@Redirect(method = "method_45566", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getMessageDecorator()Lnet/minecraft/network/message/MessageDecorator;"))
@@ -31,7 +25,7 @@ public class MessageFormatMixin implements ExtMessageFormat {
     }*/
 
     @Override
-    public <T> void styledChat_setSource(String command, ServerCommandSource source, BiFunction<String, Class<T>, T> argumentGetter) {
+    public <T> void styledChat_setSource(String command, CommandSourceStack source, BiFunction<String, Class<T>, T> argumentGetter) {
         this.styledChat_context = command;
         this.styledChat_source = source;
         this.styledChat_args = (BiFunction<String, Class<?>, Object>) (Object) argumentGetter;

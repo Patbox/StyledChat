@@ -1,8 +1,8 @@
 package eu.pb4.styledchat.other;
 
-import net.minecraft.network.message.SignedMessage;
+import net.minecraft.network.chat.PlayerChatMessage;
 
 public interface ExtendedSentMessage {
-    SignedMessage styledChat$message();
-    default void styledChat$setMessage(SignedMessage value) {};
+    PlayerChatMessage styledChat$message();
+    default void styledChat$setMessage(PlayerChatMessage value) {};
 }

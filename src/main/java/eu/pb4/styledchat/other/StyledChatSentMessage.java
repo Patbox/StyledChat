@@ -4,110 +4,110 @@ import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
-import eu.pb4.styledchat.ducks.ExtSignedMessage;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SentMessage;
-import net.minecraft.network.message.SignedMessage;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.PlainTextContent;
-import net.minecraft.text.Text;
+import eu.pb4.styledchat.ducks.ExtPlayerChatMessage;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import java.util.Objects;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.OutgoingChatMessage;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 
-public interface StyledChatSentMessage extends SentMessage, ExtendedSentMessage {
-    Text override();
+public interface StyledChatSentMessage extends OutgoingChatMessage, ExtendedSentMessage {
+    Component override();
 
-    SignedMessage message();
+    PlayerChatMessage message();
 
-    StyledChatSentMessage reformat(MessageType.Parameters sent, RegistryKey<MessageType> sourceType);
+    StyledChatSentMessage reformat(ChatType.Bound sent, ResourceKey<ChatType> sourceType);
 
-    RegistryKey<MessageType> sourceType();
+    ResourceKey<ChatType> sourceType();
 
     @Override
-    default SignedMessage styledChat$message() {
+    default PlayerChatMessage styledChat$message() {
         return this.message();
     }
 
-    record Chat(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType, MutableObject<MessageType.Parameters> colorless) implements StyledChatSentMessage {
-        public Text content() {
-            return message.getContent();
+    record Chat(PlayerChatMessage message, Component override, ChatType.Bound parameters, ResourceKey<ChatType> sourceType, MutableObject<ChatType.Bound> colorless) implements StyledChatSentMessage {
+        public Component content() {
+            return message.decoratedContent();
         }
 
         @Override
-        public void send(ServerPlayerEntity receiver, boolean filterMaskEnabled, MessageType.Parameters params) {
-            SignedMessage signedMessage = this.message.withFilterMaskEnabled(filterMaskEnabled);
-            var color = ((ExtPlayNetworkHandler) receiver.networkHandler).styledChat$chatColors();
+        public void sendToPlayer(ServerPlayer receiver, boolean filterMaskEnabled, ChatType.Bound params) {
+            PlayerChatMessage signedMessage = this.message.filter(filterMaskEnabled);
+            var color = ((ExtPlayNetworkHandler) receiver.connection).styledChat$chatColors();
             if (!color && colorless.getValue() == null) {
                 colorless.setValue(StyledChatUtils.removeColor(parameters));
             }
             if (!signedMessage.isFullyFiltered()) {
-                var id = receiver.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
+                var id = receiver.registryAccess().lookupOrThrow(Registries.CHAT_TYPE).getKey(params.chatType().value());
 
-                if (sourceType == null || Objects.equals(id, this.sourceType.getValue())) {
-                    receiver.networkHandler.sendChatMessage(signedMessage, color ? this.parameters : colorless.getValue());
+                if (sourceType == null || Objects.equals(id, this.sourceType.identifier())) {
+                    receiver.connection.sendPlayerChatMessage(signedMessage, color ? this.parameters : colorless.getValue());
                 } else {
-                    var baseInput = ExtSignedMessage.getArg(signedMessage, "base_input");
-                    var source = ExtSignedMessage.of(signedMessage).styledChat_getSource();
+                    var baseInput = ExtPlayerChatMessage.getArg(signedMessage, "base_input");
+                    var source = ExtPlayerChatMessage.of(signedMessage).styledChat_getSource();
 
-                    var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != PlainTextContent.EMPTY
+                    var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContents() != PlainTextContents.EMPTY
                             ? baseInput
-                            : signedMessage.getContent();
+                            : signedMessage.decoratedContent();
 
-                    var text = StyledChatStyles.getCustom(id, params.name(), input, params.targetName().orElse(null), source != null ? source : StyledChatMod.server.getCommandSource());
+                    var text = StyledChatStyles.getCustom(id, params.name(), input, params.targetName().orElse(null), source != null ? source : StyledChatMod.server.createCommandSourceStack());
 
                     if (!color) {
                         text = StyledChatUtils.removeColor(text);
                     }
 
-                    receiver.networkHandler.sendChatMessage(signedMessage, MessageType.params(StyledChatMod.MESSAGE_TYPE_ID, receiver.getRegistryManager(), text));
+                    receiver.connection.sendPlayerChatMessage(signedMessage, ChatType.bind(StyledChatMod.MESSAGE_TYPE_ID, receiver.registryAccess(), text));
                 }
             }
         }
 
         @Override
-        public StyledChatSentMessage reformat(MessageType.Parameters pars, RegistryKey<MessageType> sourceType) {
+        public StyledChatSentMessage reformat(ChatType.Bound pars, ResourceKey<ChatType> sourceType) {
             return new StyledChatSentMessage.Chat(message, override, pars, sourceType, new MutableObject<>());
         }
     }
 
-    record System(SignedMessage message, Text override, MessageType.Parameters parameters, RegistryKey<MessageType> sourceType, MutableObject<MessageType.Parameters> colorless) implements StyledChatSentMessage {
-        public Text content() {
-            return this.message.getContent();
+    record System(PlayerChatMessage message, Component override, ChatType.Bound parameters, ResourceKey<ChatType> sourceType, MutableObject<ChatType.Bound> colorless) implements StyledChatSentMessage {
+        public Component content() {
+            return this.message.decoratedContent();
         }
 
         @Override
-        public void send(ServerPlayerEntity receiver, boolean filterMaskEnabled, MessageType.Parameters params) {
-            var id = receiver.getRegistryManager().getOrThrow(RegistryKeys.MESSAGE_TYPE).getId(params.type().value());
-            var color = ((ExtPlayNetworkHandler) receiver.networkHandler).styledChat$chatColors();
+        public void sendToPlayer(ServerPlayer receiver, boolean filterMaskEnabled, ChatType.Bound params) {
+            var id = receiver.registryAccess().lookupOrThrow(Registries.CHAT_TYPE).getKey(params.chatType().value());
+            var color = ((ExtPlayNetworkHandler) receiver.connection).styledChat$chatColors();
             if (!color && colorless.getValue() == null) {
                 colorless.setValue(StyledChatUtils.removeColor(parameters));
             }
 
-            if (sourceType == null || Objects.equals(id, this.sourceType.getValue())) {
-                receiver.networkHandler.sendProfilelessChatMessage(message.getContent(), color ? this.parameters : colorless.getValue());
+            if (sourceType == null || Objects.equals(id, this.sourceType.identifier())) {
+                receiver.connection.sendDisguisedChatMessage(message.decoratedContent(), color ? this.parameters : colorless.getValue());
             } else {
-                var baseInput = ExtSignedMessage.getArg(message, "base_input");
-                var source = ExtSignedMessage.of(message).styledChat_getSource();
+                var baseInput = ExtPlayerChatMessage.getArg(message, "base_input");
+                var source = ExtPlayerChatMessage.of(message).styledChat_getSource();
 
-                var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContent() != PlainTextContent.EMPTY
+                var input = baseInput != StyledChatUtils.EMPTY_TEXT && baseInput.getContents() != PlainTextContents.EMPTY
                         ? baseInput
-                        : message.getContent();
+                        : message.decoratedContent();
 
-                var text = StyledChatStyles.getCustom(id, params.name(), input, params.targetName().orElse(null), source != null ? source : StyledChatMod.server.getCommandSource());
+                var text = StyledChatStyles.getCustom(id, params.name(), input, params.targetName().orElse(null), source != null ? source : StyledChatMod.server.createCommandSourceStack());
 
                 if (!color) {
                     text = StyledChatUtils.removeColor(text);
                 }
 
-                receiver.networkHandler.sendProfilelessChatMessage(message.getContent(), StyledChatUtils.createParameters(text));
+                receiver.connection.sendDisguisedChatMessage(message.decoratedContent(), StyledChatUtils.createParameters(text));
             }
         }
 
         @Override
-        public StyledChatSentMessage reformat(MessageType.Parameters pars, RegistryKey<MessageType> sourceType) {
+        public StyledChatSentMessage reformat(ChatType.Bound pars, ResourceKey<ChatType> sourceType) {
             return new StyledChatSentMessage.Chat(message, override, pars, sourceType, new MutableObject<>());
         }
     }
