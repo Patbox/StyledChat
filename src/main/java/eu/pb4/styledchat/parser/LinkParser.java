@@ -3,7 +3,8 @@ package eu.pb4.styledchat.parser;
 import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
-import eu.pb4.placeholders.api.node.DirectTextNode;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
+import eu.pb4.placeholders.api.node.DirectComponentNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.placeholders.api.node.parent.ClickActionNode;
@@ -57,9 +58,9 @@ public record LinkParser(TextNode style) implements NodeParser {
                 }
 
 
-                var text = style.toText(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Component.literal(link), "link", Component.literal(link))::get));
+                var text = style.toComponent(ParserContext.of(ChatStyle.DYN_KEY, Map.of("url", Component.literal(link), "link", Component.literal(link))::get));
 
-                list.add(new DirectTextNode(Component.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent.OpenUrl(uri)))));
+                list.add(new DirectComponentNode(Component.empty().append(text).setStyle(Style.EMPTY.withClickEvent(new ClickEvent.OpenUrl(uri)))));
 
                 currentPos = matcher.end();
             }
@@ -85,7 +86,7 @@ public record LinkParser(TextNode style) implements NodeParser {
         return new TextNode[] { node };
     }
 
-    public static TextNode[] parse(TextNode node, PlaceholderContext context) {
+    public static TextNode[] parse(TextNode node, ServerPlaceholderContext context) {
         return new LinkParser(ConfigManager.getConfig().getLinkStyle(context)).parseNodes(node);
     }
 }

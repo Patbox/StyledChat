@@ -8,6 +8,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatUtils;
@@ -76,11 +77,11 @@ public class Commands {
                                                     Component parsed;
 
 
-                                                    parsed = Placeholders.parseText(
+                                                    parsed = Placeholders.SERVER_PLACEHOLDER_PARSER.parseComponent(
                                                             TextNode.asSingle(
                                                                     StyledChatUtils.createParser(context.getSource()).parseNodes(TextNode.of(StringArgumentType.getString(context, "message")))
                                                             ),
-                                                            PlaceholderContext.of(context.getSource())
+                                                            ServerPlaceholderContext.of(context.getSource()).asParserContext()
                                                     );
 
                                                     for (var player : EntityArgument.getPlayers(context, "targets")) {

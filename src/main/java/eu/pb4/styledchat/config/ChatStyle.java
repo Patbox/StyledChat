@@ -4,10 +4,13 @@ import com.google.gson.JsonObject;
 import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.DynamicTextNode;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.TextNode;
-import eu.pb4.placeholders.api.parsers.*;
+import eu.pb4.placeholders.api.parsers.NodeParser;
+import eu.pb4.placeholders.api.parsers.StaticPreParser;
+import eu.pb4.placeholders.api.parsers.TagLikeParser;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.StyledChatUtils;
@@ -15,16 +18,17 @@ import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.world.entity.TamableAnimal;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.TamableAnimal;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ChatStyle {
@@ -33,7 +37,7 @@ public class ChatStyle {
     public static final NodeParser PARSER = NodeParser.builder()
             .simplifiedTextFormat()
             .quickText()
-            .globalPlaceholders()
+            .serverPlaceholders()
             .placeholders(TagLikeParser.PLACEHOLDER_USER, DYN_KEY)
             .staticPreParsing()
             .build();
@@ -64,7 +68,7 @@ public class ChatStyle {
     public final Map<Identifier, TextNode> custom = new HashMap<>();
 
     public ChatStyle(ChatStyleData data, ChatStyle defaultStyle) {
-        this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(0);
+        this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(PermissionLevel.ALL);
 
         this.displayName = data.displayName != null ? parseText(data.displayName) : defaultStyle.displayName;
 
@@ -114,7 +118,7 @@ public class ChatStyle {
     }
 
     public ChatStyle(ChatStyleData data) {
-        this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(0);
+        this.require = data instanceof ConfigData.RequireChatStyleData data1 ? data1.require : BuiltinPredicates.operatorLevel(PermissionLevel.ALL);
 
         this.displayName = data.displayName != null ? parseText(data.displayName) : null;
         this.chat = data.messages.chat != null ? parseText(data.messages.chat) : null;
@@ -186,11 +190,9 @@ public class ChatStyle {
             try {
                 for (var entry : json.entrySet()) {
                     this.emoticons.put(entry.getKey(),
-                            NodeParser.merge(
-                                    TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
-                                    new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> parseText(entry.getValue().getAsString())),
-                                    StaticPreParser.INSTANCE
-                            ).parseNode(baseValue)
+                            NodeParser.builder().quickText().serverPlaceholders()
+                                    .placeholders(TagLikeParser.PLACEHOLDER_USER, (x) -> parseText(entry.getValue().getAsString()))
+                                    .staticPreParsing().build().parseNode(baseValue)
                     );
                 }
             } catch (Throwable e) {
@@ -212,11 +214,10 @@ public class ChatStyle {
                         b.appendCodePoint(Integer.parseInt(x, 16));
                     }
 
-                    var output = NodeParser.merge(
-                            TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
-                            new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> TextNode.of(b.toString())),
-                            StaticPreParser.INSTANCE
-                    ).parseNode(baseValue);
+                    var output =
+                            NodeParser.builder().quickText().serverPlaceholders()
+                                    .placeholders(TagLikeParser.PLACEHOLDER_USER, (x) -> parseText(b.toString()))
+                                    .staticPreParsing().build().parseNode(baseValue);
 
                     if (entry.getValue().isJsonArray()) {
                         for (var x : entry.getValue().getAsJsonArray()) {
@@ -235,11 +236,9 @@ public class ChatStyle {
 
                 for (var entry : json.entrySet()) {
                     try {
-                        var value = NodeParser.merge(
-                                TextParserV1.DEFAULT, Placeholders.DEFAULT_PLACEHOLDER_PARSER,
-                                new PatternPlaceholderParser(PatternPlaceholderParser.PREDEFINED_PLACEHOLDER_PATTERN, (x) -> TextNode.of(entry.getKey())),
-                                StaticPreParser.INSTANCE
-                        ).parseNode(baseValue);
+                        var value = NodeParser.builder().quickText().serverPlaceholders()
+                                .placeholders(TagLikeParser.PLACEHOLDER_USER, (x) -> parseText(entry.getKey()))
+                                .staticPreParsing().build().parseNode(baseValue);
                         for (var key : entry.getValue().getAsJsonObject().getAsJsonArray("default")) {
                             this.emoticons.put(key.getAsString().replace(' ', '_').replace(':', '_'), value);
                         }
@@ -259,9 +258,9 @@ public class ChatStyle {
         } else if (this.displayName == EmptyNode.INSTANCE) {
             return vanillaDisplayName;
         }
-        var context = PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("vanillaDisplayName", vanillaDisplayName, "player", vanillaDisplayName, "default", vanillaDisplayName, "name", player.getName())::get);
+        var context = ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("vanillaDisplayName", vanillaDisplayName, "player", vanillaDisplayName, "default", vanillaDisplayName, "name", player.getName())::get);
 
-        return this.displayName.toText(context);
+        return this.displayName.toComponent(context);
     }
 
     @Nullable
@@ -273,7 +272,7 @@ public class ChatStyle {
         }
 
 
-        return this.chat.toText(PlaceholderContext.of(player)
+        return this.chat.toComponent(ServerPlaceholderContext.of(player)
                 .asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "message", message)::get));
     }
 
@@ -285,7 +284,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.join.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
+        return this.join.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -296,7 +295,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.joinFirstTime.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
+        return this.joinFirstTime.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -307,7 +306,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.joinRenamed.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "old_name", Component.literal(oldName))::get));
+        return this.joinRenamed.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "old_name", Component.literal(oldName))::get));
     }
 
     @Nullable
@@ -318,7 +317,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.left.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
+        return this.left.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName())::get));
     }
 
     @Nullable
@@ -329,7 +328,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.death.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "default_message", vanillaMessage)::get));
+        return this.death.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "default_message", vanillaMessage)::get));
     }
 
     @Nullable
@@ -340,7 +339,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementGoal.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
+        return this.advancementGoal.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -351,7 +350,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementTask.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
+        return this.advancementTask.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -362,7 +361,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.advancementChallenge.toText(PlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
+        return this.advancementChallenge.toComponent(ServerPlaceholderContext.of(player).asParserContext().with(DYN_KEY, Map.of("player", player.getDisplayName(), "advancement", advancement)::get));
     }
 
     @Nullable
@@ -373,7 +372,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.sayCommand.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
+        return this.sayCommand.toComponent(ServerPlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
     }
 
     @Nullable
@@ -384,30 +383,30 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.meCommand.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
+        return this.meCommand.toComponent(ServerPlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("player", source.getDisplayName(), "displayName", source.getDisplayName(), "message", message)::get));
 
     }
 
     @Nullable
-    public Component getPrivateMessageSent(Component sender, Component receiver, Component message, PlaceholderContext context) {
+    public Component getPrivateMessageSent(Component sender, Component receiver, Component message, ServerPlaceholderContext context) {
         if (this.privateMessageSent == null) {
             return null;
         } else if (this.privateMessageSent == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.privateMessageSent.toText(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
+        return this.privateMessageSent.toComponent(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
     }
 
     @Nullable
-    public Component getPrivateMessageReceived(Component sender, Component receiver, Component message, PlaceholderContext context) {
+    public Component getPrivateMessageReceived(Component sender, Component receiver, Component message, ServerPlaceholderContext context) {
         if (this.privateMessageReceived == null) {
             return null;
         } else if (this.privateMessageReceived == EmptyNode.INSTANCE) {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.privateMessageReceived.toText(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
+        return this.privateMessageReceived.toComponent(context.asParserContext().with(DYN_KEY, Map.of("sender", sender, "receiver", receiver, "message", message)::get));
     }
 
     @Nullable
@@ -418,7 +417,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.teamChatSent.toText(PlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
+        return this.teamChatSent.toComponent(ServerPlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -429,7 +428,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return this.teamChatReceived.toText(PlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
+        return this.teamChatReceived.toComponent(ServerPlaceholderContext.of(context).asParserContext().with(DYN_KEY, Map.of("team", team, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -442,7 +441,7 @@ public class ChatStyle {
             return StyledChatUtils.IGNORED_TEXT;
         }
 
-        return node.toText(PlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("receiver", receiver == null ? Component.empty() : receiver, "displayName", displayName, "message", message)::get));
+        return node.toComponent(ServerPlaceholderContext.of(source).asParserContext().with(DYN_KEY, Map.of("receiver", receiver == null ? Component.empty() : receiver, "displayName", displayName, "message", message)::get));
     }
 
     @Nullable
@@ -470,7 +469,7 @@ public class ChatStyle {
             return null;
         }
 
-        return this.petDeath.toText(PlaceholderContext.of(entity).asParserContext().with(DYN_KEY,
+        return this.petDeath.toComponent(ServerPlaceholderContext.of(entity).asParserContext().with(DYN_KEY,
                 Map.of("pet", entity.getDisplayName(), "default_message", vanillaMessage)::get));
     }
 }

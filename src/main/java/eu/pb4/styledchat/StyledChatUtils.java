@@ -2,7 +2,7 @@ package eu.pb4.styledchat;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
-import eu.pb4.placeholders.api.TextParserUtils;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.EmptyNode;
 import eu.pb4.placeholders.api.node.LiteralNode;
 import eu.pb4.placeholders.api.node.TextNode;
@@ -23,6 +23,7 @@ import eu.pb4.styledchat.parser.LinkParser;
 import eu.pb4.styledchat.parser.MentionParser;
 import eu.pb4.styledchat.parser.SpoilerNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.selector.EntitySelector;
@@ -67,32 +68,15 @@ public final class StyledChatUtils {
     public static final Component EMPTY_TEXT = Component.empty();
     private static final Set<ResourceKey<ChatType>> DECORABLE = Set.of(ChatType.CHAT, ChatType.EMOTE_COMMAND, ChatType.MSG_COMMAND_INCOMING, ChatType.MSG_COMMAND_OUTGOING, ChatType.SAY_COMMAND, ChatType.TEAM_MSG_COMMAND_INCOMING, ChatType.TEAM_MSG_COMMAND_OUTGOING);
 
-    @Deprecated(forRemoval = true)
-    public static final TextParserV1.TagNodeBuilder SPOILER_TAG_HANDLER = (tag, data, input, handlers, endAt) -> {
-        var out = TextParserV1.parseNodesWith(input, handlers, endAt);
-
-        return new TextParserV1.TagNodeValue(new SpoilerNode(out.nodes()), out.length());
-    };
-
-    @Deprecated(forRemoval = true)
-    public static final TextParserV1.TextTag SPOILER_TEXT_TAG = TextParserV1.TextTag.of(SPOILER_TAG, List.of("hide"), "styledchat", true, SPOILER_TAG_HANDLER);
-    @Deprecated(forRemoval = true)
-    public static final Pattern EMOTE_PATTERN = Pattern.compile("(?<!((?<!(\\\\))\\\\))[:](?<id>[^:]+)[:]");;
-
-    @Deprecated
-    public static TextNode parseText(String input) {
-        return !input.isEmpty() ? Placeholders.parseNodes(TextParserUtils.formatNodes(input)) : EmptyNode.INSTANCE;
-    }
-
     public static NodeParser createParser(CommandSourceStack source) {
-        return createParser(PlaceholderContext.of(source));
+        return createParser(ServerPlaceholderContext.of(source));
     }
 
-    public static NodeParser createParser(PlaceholderContext context) {
+    public static NodeParser createParser(ServerPlaceholderContext context) {
         var config = ConfigManager.getConfig();
         var builder = NodeParser.builder();
 
-        var tags = getTextTagRegistry(context.source());
+        var tags = getTextTagRegistry(context.commandSourceStack());
 
         if (!tags.getTags().isEmpty()) {
             builder.simplifiedTextFormat();
@@ -185,38 +169,12 @@ public final class StyledChatUtils {
 
         return registry;
     }
-    @SuppressWarnings("removal")
-    @Deprecated(forRemoval = true)
-    public static TextParserV1 createTextParserV1(CommandSourceStack source) {
-        var parser = new TextParserV1();
-        Config config = ConfigManager.getConfig();
 
-        var allowedFormatting = config.getAllowedFormatting(source);
-
-        for (var entry : TextParserV1.DEFAULT.getTags()) {
-            if (allowedFormatting.getBoolean(entry.name())
-                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name(), entry.userSafe() ? 2 : 4)
-                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + ".type." + entry.type(), entry.userSafe() ? 2 : 4)
-            ) {
-                parser.register(entry);
-            }
-        }
-
-        if (allowedFormatting.getBoolean(SPOILER_TAG)
-                || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
-            parser.register(SPOILER_TEXT_TAG);
-        }
-
-        StyledChatEvents.FORMATTING_CREATION_EVENT.invoker().onFormattingBuild(source, parser);
-
-        return parser;
+    public static Map<String, TextNode> getEmotes(ServerPlaceholderContext context) {
+        return StyledChatStyles.getEmotes(context.commandSourceStack());
     }
 
-    public static Map<String, TextNode> getEmotes(PlaceholderContext context) {
-        return StyledChatStyles.getEmotes(context.hasPlayer() ? context.player().createCommandSourceStack() : context.server().createCommandSourceStack());
-    }
-
-    public static Component formatFor(PlaceholderContext context, String input) {
+    public static Component formatFor(ServerPlaceholderContext context, String input) {
         var parser = createParser(context);
         var config = ConfigManager.getConfig();
         if (StyledChatMod.USE_FABRIC_API) {
@@ -229,11 +187,11 @@ public final class StyledChatUtils {
             value = StyledChatEvents.MESSAGE_CONTENT.invoker().onMessage(value, context);
         }
 
-        var text = value.toText(context);
+        var text = value.toComponent(context);
 
         if (config.configData.formatting.respectColors) {
             try {
-                text = context.server().getChatDecorator().decorate(context.player(), text);
+                text = context.server().getChatDecorator().decorate(context.serverPlayer(), text);
             } catch (Exception e) {
                 // noop
             }
@@ -251,7 +209,7 @@ public final class StyledChatUtils {
 
 
         return (player, message) -> {
-            var input = formatFor(player != null ? PlaceholderContext.of(player) : PlaceholderContext.of(StyledChatMod.server), message.getString());
+            var input = formatFor(player != null ? ServerPlaceholderContext.of(player) : ServerPlaceholderContext.of(StyledChatMod.server), message.getString());
 
 
             return switch (context) {
@@ -288,7 +246,7 @@ public final class StyledChatUtils {
     }
 
     @Deprecated
-    public static TextNode additionalParsing(TextNode node, PlaceholderContext context) {
+    public static TextNode additionalParsing(TextNode node, ServerPlaceholderContext context) {
 
         if (ConfigManager.getConfig().configData.formatting.parseLinksInChat) {
             node = parseLinks(node, context);
@@ -297,7 +255,7 @@ public final class StyledChatUtils {
     }
 
     @Deprecated
-    public static TextNode parseLinks(TextNode node, PlaceholderContext context) {
+    public static TextNode parseLinks(TextNode node, ServerPlaceholderContext context) {
         return TextNode.asSingle(LinkParser.parse(node, context));
     }
 
@@ -407,14 +365,14 @@ public final class StyledChatUtils {
 
     public static Component formatFor(CommandSourceStack source, String original) {
         if (source.getEntity() instanceof ServerPlayer player) {
-            return formatFor(PlaceholderContext.of(player), original);
+            return formatFor(ServerPlaceholderContext.of(player), original);
         } else {
-            return formatFor(PlaceholderContext.of(source.getServer()), original);
+            return formatFor(ServerPlaceholderContext.of(source.getServer()), original);
         }
     }
 
     @Deprecated
-    public static PlayerChatMessage toEventMessage(PlayerChatMessage message, PlaceholderContext context) {
+    public static PlayerChatMessage toEventMessage(PlayerChatMessage message, ServerPlaceholderContext context) {
         var ext = (ExtPlayerChatMessage) (Object) message;
 
         var baseInput = ext.styledChat_getArg("base_input");

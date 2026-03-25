@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EmoteCommands.class)
 public class EmoteCommandMixin {
-    @Inject(method = "method_43645", at = @At("HEAD"))
+    @Inject(method = "lambda$register$1", at = @At("HEAD"))
     private static void styledChat_formatText(CommandContext<CommandSourceStack> commandContext, PlayerChatMessage signedMessage, CallbackInfo ci) {
         StyledChatUtils.modifyForSending(signedMessage, commandContext.getSource(), ChatType.EMOTE_COMMAND);
     }

@@ -30,7 +30,7 @@ public class StyledChatMod implements ModInitializer {
 		this.crabboardDetection();
 		GenericModInfo.build(CONTAINER);
 		PlayerDataApi.register(StyledChatUtils.PLAYER_DATA);
-		Placeholders.registerChangeEvent((id, removed) -> ConfigManager.clearCached());
+		Placeholders.registerServerChangeEvent((id, removed) -> ConfigManager.clearCached());
 	}
 
 

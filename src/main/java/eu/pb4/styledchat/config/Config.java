@@ -2,14 +2,15 @@ package eu.pb4.styledchat.config;
 
 
 import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
-import eu.pb4.placeholders.api.parsers.TextParserV1;
 import eu.pb4.placeholders.api.parsers.tag.TagRegistry;
 import eu.pb4.predicate.api.BuiltinPredicates;
 import eu.pb4.predicate.api.PredicateContext;
 import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.ConfigData;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import net.minecraft.server.permissions.PermissionLevel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public final class Config {
 
         for (var entry : data.permissionStyles) {
             if (entry.require == null) {
-                entry.require = BuiltinPredicates.operatorLevel(4);
+                entry.require = BuiltinPredicates.operatorLevel(PermissionLevel.OWNERS);
             }
 
             var style = new ChatStyle(entry);
@@ -222,7 +223,7 @@ public final class Config {
     }
 
     public Component getPrivateMessageSent(Component sender, Component receiver, Component message, CommandSourceStack context) {
-        var placeholderContext = PlaceholderContext.of(context);
+        var placeholderContext = ServerPlaceholderContext.of(context);
 
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
@@ -237,7 +238,7 @@ public final class Config {
     }
 
     public Component getPrivateMessageReceived(Component sender, Component receiver, Component message, CommandSourceStack context) {
-        var placeholderContext = PlaceholderContext.of(context);
+        var placeholderContext = ServerPlaceholderContext.of(context);
 
         var context2 = PredicateContext.of(context);
         for (var entry : this.permissionStyle) {
@@ -277,8 +278,8 @@ public final class Config {
         return this.defaultStyle.getTeamChatReceived(team, displayName, message, context);
     }
 
-    public TextNode getSpoilerStyle(PlaceholderContext ctx) {
-        var context2 = PredicateContext.of(ctx.source());
+    public TextNode getSpoilerStyle(ServerPlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.commandSourceStack());
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
                 var text = entry.getSpoilerStyle();
@@ -290,8 +291,8 @@ public final class Config {
         return this.defaultStyle.getSpoilerStyle();
     }
 
-    public String getSpoilerSymbole(PlaceholderContext ctx) {
-        var context2 = PredicateContext.of(ctx.source());
+    public String getSpoilerSymbole(ServerPlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.commandSourceStack());
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
                 var text = entry.getSpoilerSymbol();
@@ -303,8 +304,8 @@ public final class Config {
         return this.defaultStyle.getSpoilerSymbol();
     }
 
-    public TextNode getLinkStyle(PlaceholderContext ctx) {
-        var context2 = PredicateContext.of(ctx.source());
+    public TextNode getLinkStyle(ServerPlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.commandSourceStack());
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
                 var text = entry.getLink();
@@ -316,8 +317,8 @@ public final class Config {
         return this.defaultStyle.getLink();
     }
 
-    public TextNode getMentionStyle(PlaceholderContext ctx) {
-        var context2 = PredicateContext.of(ctx.source());
+    public TextNode getMentionStyle(ServerPlaceholderContext ctx) {
+        var context2 = PredicateContext.of(ctx.commandSourceStack());
         for (var entry : this.permissionStyle) {
             if (entry.require.test(context2).success()) {
                 var text = entry.getMention();

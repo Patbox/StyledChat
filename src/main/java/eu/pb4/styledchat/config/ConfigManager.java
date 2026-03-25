@@ -9,7 +9,6 @@ import eu.pb4.predicate.api.MinecraftPredicate;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.config.data.ConfigData;
 import eu.pb4.styledchat.config.data.VersionConfigData;
-import eu.pb4.styledchat.config.data.old.ConfigDataV2;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.HolderLookup;
 import java.nio.charset.StandardCharsets;
@@ -50,11 +49,13 @@ public class ConfigManager {
 
 
                 if (versionConfigData.version < 3) {
-                    config = gson.fromJson(json, ConfigDataV2.class).update();
+                    config = gson.fromJson(json, ConfigData.class);
+                    StyledChatMod.LOGGER.warn("Unsupported Styled Chat config version! Required: 3+, found {}", versionConfigData.version);
                     Files.writeString(FabricLoader.getInstance().getConfigDir().resolve("styled-chat.json_old_v2"), json, StandardCharsets.UTF_8);
                 } else {
                     config = gson.fromJson(json, ConfigData.class);
                 }
+                config.configVersion = ConfigData.VERSION;
 
                 config.defaultStyle.fillMissing();
             } else {

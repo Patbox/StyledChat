@@ -15,7 +15,7 @@ public class PlayerAdvancementsMixin {
 
     @Shadow private ServerPlayer player;
 
-    @ModifyArg(method = "method_53637", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))
+    @ModifyArg(method = "lambda$award$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))
     private Component styledChat_changeAdvancementMessage(Component text) {
         var translatableText = (TranslatableContents) text.getContents();
         Component advancement = (Component) translatableText.getArgs()[1];

@@ -1,6 +1,7 @@
 package eu.pb4.styledchat.mixin;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatStyles;
 import eu.pb4.styledchat.config.ChatStyle;
@@ -34,12 +35,12 @@ public abstract class ServerGamePacketListenerImplMixin implements ExtPlayNetwor
         return StyledChatStyles.getLeft(this.player);
     }
 
-    @Redirect(method = "method_44900", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/ChatDecorator;decorate(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;)Lnet/minecraft/network/chat/Component;"))
+    @Redirect(method = "lambda$handleChat$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/ChatDecorator;decorate(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;)Lnet/minecraft/network/chat/Component;"))
     private Component styledChat_replaceDecorator2(ChatDecorator instance, ServerPlayer player, Component text) {
         if (player != null) {
-            return StyledChatUtils.formatFor(PlaceholderContext.of(player), text.getString());
+            return StyledChatUtils.formatFor(ServerPlaceholderContext.of(player), text.getString());
         } else {
-            return StyledChatUtils.formatFor(PlaceholderContext.of(StyledChatMod.server), text.getString());
+            return StyledChatUtils.formatFor(ServerPlaceholderContext.of(StyledChatMod.server), text.getString());
         }
     }
 

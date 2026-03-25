@@ -1,6 +1,7 @@
 package eu.pb4.styledchat;
 
 import eu.pb4.placeholders.api.PlaceholderContext;
+import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
 import eu.pb4.styledchat.config.ConfigManager;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +130,7 @@ public final class StyledChatStyles {
 
     public static Component getPrivateMessageSent(Component sender, Component receiver, Component message, CommandSourceStack source) {
         if (source.isPlayer()) {
-            var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageSent(sender, receiver, message, PlaceholderContext.of(source));
+            var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageSent(sender, receiver, message, ServerPlaceholderContext.of(source));
             if (style != null) {
                 return style;
             }
@@ -140,7 +141,7 @@ public final class StyledChatStyles {
 
     public static Component getPrivateMessageReceived(Component sender, Component receiver, Component message, CommandSourceStack source) {
         if (source.isPlayer()) {
-            var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageReceived(sender, receiver, message, PlaceholderContext.of(source));
+            var style = StyledChatUtils.getPersonalStyle(source.getPlayer()).getPrivateMessageReceived(sender, receiver, message, ServerPlaceholderContext.of(source));
             if (style != null) {
                 return style;
             }
