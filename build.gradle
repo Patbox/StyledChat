@@ -40,10 +40,10 @@ dependencies {
 	//modCompileOnly fabricApi.module("fabric-api-base", project.fabric_version)
 	//modLocalRuntime fabricApi.module("fabric-api-base", project.fabric_version)
 
-	implementation include("eu.pb4:predicate-api:0.8.1+26.1")
-	implementation include("eu.pb4:placeholder-api:3.0.0-beta.2+26.1")
-	implementation include("eu.pb4:player-data-api:0.10.0+26.1")
-	implementation include("me.lucko:fabric-permissions-api:0.7.0")
+	implementation include("eu.pb4:predicate-api:0.8.2+26.1")
+	implementation include("eu.pb4:placeholder-api:3.0.0+26.1")
+	implementation include("eu.pb4:player-data-api:0.10.1+26.1")
+	compileOnly "me.lucko:fabric-permissions-api:0.7.0"
 
 	//compileOnly("maven.modrinth:vanish:1.5.2+1.20.4")
 	//modLocalRuntime("fr.catcore:server-translations-api:1.4.17+1.19.2")
@@ -54,10 +54,6 @@ dependencies {
 }
 
 loom {
-	enableTransitiveAccessWideners = false
-	interfaceInjection {
-		enableDependencyInterfaceInjection = false
-	}
 	accessWidenerPath = file("src/main/resources/styledchat.accesswidener")
 }
 

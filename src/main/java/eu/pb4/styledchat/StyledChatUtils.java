@@ -19,11 +19,10 @@ import eu.pb4.styledchat.config.data.ChatStyleData;
 import eu.pb4.styledchat.config.data.VersionedChatStyleData;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.ducks.ExtPlayerChatMessage;
+import eu.pb4.styledchat.other.FabricPermissionBridge;
 import eu.pb4.styledchat.parser.LinkParser;
 import eu.pb4.styledchat.parser.MentionParser;
 import eu.pb4.styledchat.parser.SpoilerNode;
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.selector.EntitySelector;
@@ -36,8 +35,10 @@ import net.minecraft.network.chat.SignedMessageBody;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,8 +61,8 @@ public final class StyledChatUtils {
     public static JsonDataStorage<VersionedChatStyleData> PLAYER_DATA = new JsonDataStorage<>("styled_chat_style", VersionedChatStyleData.class);
     public static final TextTag SPOILER_TEXT_TAG_NEW = TextTag.enclosing(SPOILER_TAG, List.of("hide"), "styledchat", true, ((nodes, arg, parser) -> new SpoilerNode(nodes)));
 
-    public static final String FORMAT_PERMISSION_BASE = "styledchat.format.";
-    public static final String FORMAT_PERMISSION_UNSAFE = "styledchat.unsafe_format.";
+    public static final String FORMAT_PERMISSION_BASE = "format/";
+    public static final String FORMAT_PERMISSION_UNSAFE = "unsafe_format/";
 
 
     public static final TagLikeParser.Format EMOTE_FORMAT = TagLikeParser.Format.of(':', ':');
@@ -119,6 +120,10 @@ public final class StyledChatUtils {
                 form.add(MarkdownLiteParserV1.MarkdownFormat.URL);
             }
 
+            if (tags.getTag("quote") != null) {
+                form.add(MarkdownLiteParserV1.MarkdownFormat.QUOTE);
+            }
+
             builder.markdown(SpoilerNode::new, MarkdownLiteParserV1::defaultQuoteFormatting, MarkdownLiteParserV1::defaultUrlFormatting,
                     form.toArray(new MarkdownLiteParserV1.MarkdownFormat[0]));
         }
@@ -155,15 +160,15 @@ public final class StyledChatUtils {
 
         for (var entry : TagRegistry.DEFAULT.getTags()) {
             if (allowedFormatting.getBoolean(entry.name())
-                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name(), entry.userSafe() ? 2 : 4)
-                    || Permissions.check(source, (entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + ".type." + entry.type(), entry.userSafe() ? 2 : 4)
+                    || FabricPermissionBridge.checkPermission(source, id((entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + entry.name()), entry.userSafe() ? PermissionLevel.GAMEMASTERS : PermissionLevel.ADMINS)
+                    || FabricPermissionBridge.checkPermission(source, id((entry.userSafe() ? FORMAT_PERMISSION_BASE : FORMAT_PERMISSION_UNSAFE) + "type/" + entry.type()), entry.userSafe() ? PermissionLevel.GAMEMASTERS : PermissionLevel.ADMINS)
             ) {
                 registry.register(entry);
             }
         }
 
         if (allowedFormatting.getBoolean(SPOILER_TAG)
-                || Permissions.check(source, FORMAT_PERMISSION_BASE + SPOILER_TAG, 2)) {
+                || FabricPermissionBridge.checkPermission(source, id(FORMAT_PERMISSION_BASE + SPOILER_TAG), PermissionLevel.GAMEMASTERS)) {
             registry.register(SPOILER_TEXT_TAG_NEW);
         }
 
@@ -470,5 +475,9 @@ public final class StyledChatUtils {
 
     public static ChatType.Bound createParameters(Component override) {
         return ChatType.bind(StyledChatMod.MESSAGE_TYPE_ID, StyledChatMod.server.registryAccess(), override);
+    }
+
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("styledchat", path);
     }
 }

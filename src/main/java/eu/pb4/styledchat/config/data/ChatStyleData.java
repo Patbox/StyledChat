@@ -3,7 +3,7 @@ package eu.pb4.styledchat.config.data;
 
 import com.google.gson.annotations.SerializedName;
 import eu.pb4.styledchat.StyledChatUtils;
-import me.lucko.fabric.api.permissions.v0.Options;
+import eu.pb4.styledchat.other.FabricPermissionBridge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static eu.pb4.styledchat.StyledChatUtils.id;
 
 public class ChatStyleData implements Cloneable {
     public static ChatStyleData DEFAULT = createDefault();
@@ -106,10 +108,10 @@ public class ChatStyleData implements Cloneable {
     public void fillPermissionOptionProvider(CommandSourceStack source) {
         for (var prop : PROPERTIES.entrySet()) {
             if (prop.getValue().get(this) == null) {
-                var value = Options.get(source, "styled_chat." + prop.getKey());
+                var value = FabricPermissionBridge.checkPermissionString(source, id("style/" + prop.getKey()));
 
-                if (value.isPresent()) {
-                    prop.getValue().set(this, value.get());
+                if (value != null) {
+                    prop.getValue().set(this, value);
                 }
             }
         }
@@ -147,6 +149,7 @@ public class ChatStyleData implements Cloneable {
             data.formatting.put("italic", true);
             data.formatting.put("strikethrough", true);
             data.formatting.put("underline", true);
+            data.formatting.put("quote", true);
 
             for (var formatting : ChatFormatting.values()) {
                 if (formatting.isColor()) {

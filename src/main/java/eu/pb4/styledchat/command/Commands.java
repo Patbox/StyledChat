@@ -6,7 +6,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.ServerPlaceholderContext;
 import eu.pb4.placeholders.api.node.TextNode;
@@ -14,8 +13,8 @@ import eu.pb4.styledchat.StyledChatMod;
 import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.config.data.ChatStyleData;
+import eu.pb4.styledchat.other.FabricPermissionBridge;
 import eu.pb4.styledchat.other.GenericModInfo;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -24,9 +23,12 @@ import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
+
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static eu.pb4.styledchat.StyledChatUtils.id;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -34,16 +36,16 @@ public class Commands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registryAccess, net.minecraft.commands.Commands.CommandSelection environment) {
         dispatcher.register(
                 literal("styledchat")
-                        .requires(Permissions.require("styledchat.main", true))
+                        .requires(FabricPermissionBridge.require(id("main"), true))
                         .executes(Commands::about)
 
                         .then(literal("reload")
-                                .requires(Permissions.require("styledchat.reload", 3))
+                                .requires(FabricPermissionBridge.require(id("reload"), PermissionLevel.ADMINS))
                                 .executes(Commands::reloadConfig)
                         )
 
                         .then(literal("set")
-                                .requires(Permissions.require("styledchat.set", 2))
+                                .requires(FabricPermissionBridge.require(id("set"), PermissionLevel.MODERATORS))
                                 .then(fillWithProperties(argument("players", EntityArgument.players()),
                                         (x, p) -> x.then(argument("value", StringArgumentType.greedyString())
                                                 .executes((ctx) -> Commands.setProperty(ctx, p.apply(ctx)))
@@ -52,14 +54,14 @@ public class Commands {
                         )
 
                         .then(literal("get")
-                                .requires(Permissions.require("styledchat.get", 2))
+                                .requires(FabricPermissionBridge.require(id("get"), PermissionLevel.MODERATORS))
                                 .then(fillWithProperties(argument("player", EntityArgument.player()),
                                         (x, p) -> x.executes((ctx) -> Commands.getProperty(ctx, p.apply(ctx)))
                                 ))
                         )
 
                         .then(literal("clear")
-                                .requires(Permissions.require("styledchat.clear", 3))
+                                .requires(FabricPermissionBridge.require(id("clear"), PermissionLevel.ADMINS))
                                 .then(fillWithProperties(argument("players", EntityArgument.players()),
                                         (x, p) -> x.executes((ctx) -> Commands.clearProperty(ctx, p.apply(ctx)))
                                 ).then(literal("*").executes((ctx) -> Commands.clearProperty(ctx, null))))
@@ -68,7 +70,7 @@ public class Commands {
 
         dispatcher.register(
                 literal("tellform")
-                        .requires(Permissions.require("styledchat.tellform", 2))
+                        .requires(FabricPermissionBridge.require(id("tellform"), PermissionLevel.GAMEMASTERS))
 
                         .then(argument("targets", EntityArgument.players())
                                 .then(argument("message", StringArgumentType.greedyString())

@@ -20,11 +20,11 @@ If you have any questions, you can ask them on my [Discord](https://pb4.eu/disco
 
 
 ## Commands (and permissions):
-- `/styledchat` - Main command (`styledchat.main`, available by default)
-- `/styledchat reload` - Reloads configuration and styles (requires `styledchat.reload`)
-- `/styledchat set <player> <type> <value>` - Changes personal <player>'s style of <type> to <value> (requires `styledchat.set`)
-- `/styledchat get <player> <type>` - Sends <player>'s style of <type>  (requires `styledchat.get`)
-- `/styledchat clear <player> <type>` - Clears <player>'s style of <type> (requires `styledchat.clear`)
+- `/styledchat` - Main command (`styledchat:main`, available by default)
+- `/styledchat reload` - Reloads configuration and styles (requires `styledchat:reload`)
+- `/styledchat set <player> <type> <value>` - Changes personal <player>'s style of <type> to <value> (requires `styledchat:set`)
+- `/styledchat get <player> <type>` - Sends <player>'s style of <type>  (requires `styledchat:get`)
+- `/styledchat clear <player> <type>` - Clears <player>'s style of <type> (requires `styledchat:clear`)
 
 ## Configuration:
 You can find config file in `./config/styled-chat.json`.
@@ -174,7 +174,7 @@ Additionally, every message type has few own local variables.
 ```
 
 ## In chat formatting
-If player has a required permissions (`styledchat.format.[tag_name]`, where `[tagname]` is Text Parser tag), then they can use Simplified Text tags from within their chat.
+If player has a required permissions (`styledchat:format/[tag_name]`, where `[tagname]` is Text Parser tag), then they can use Simplified Text tags from within their chat.
 Additionally, you can enable markdown and legacy (&X) formatting in the config
 
 
