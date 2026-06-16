@@ -131,7 +131,7 @@ public final class StyledChatUtils {
         if (config.configData.formatting.legacyChatFormatting) {
             var form = new ArrayList<ChatFormatting>();
             for (var formatting : ChatFormatting.values()) {
-                if (tags.getTag(formatting.getName()) != null) {
+                if (tags.getTag(formatting.name().toLowerCase(Locale.ROOT)) != null) {
                     form.add(formatting);
                 }
             }

@@ -6,6 +6,7 @@ import eu.pb4.styledchat.StyledChatUtils;
 import eu.pb4.styledchat.other.FabricPermissionBridge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.scores.TeamColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -151,10 +152,8 @@ public class ChatStyleData implements Cloneable {
             data.formatting.put("underline", true);
             data.formatting.put("quote", true);
 
-            for (var formatting : ChatFormatting.values()) {
-                if (formatting.isColor()) {
-                    data.formatting.put(formatting.getName(), true);
-                }
+            for (var formatting : TeamColor.values()) {
+                data.formatting.put(formatting.getSerializedName(), true);
             }
         }
 
