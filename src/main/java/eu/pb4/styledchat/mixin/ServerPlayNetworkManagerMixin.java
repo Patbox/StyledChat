@@ -7,13 +7,9 @@ import eu.pb4.styledchat.config.ChatStyle;
 import eu.pb4.styledchat.config.ConfigManager;
 import eu.pb4.styledchat.ducks.ExtPlayNetworkHandler;
 import eu.pb4.styledchat.StyledChatUtils;
-import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.c2s.common.ClientOptionsC2SPacket;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
@@ -23,8 +19,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.concurrent.CompletableFuture;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHandler {
@@ -42,10 +36,14 @@ public abstract class ServerPlayNetworkManagerMixin implements ExtPlayNetworkHan
 
     @Redirect(method = "method_44900", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/message/MessageDecorator;decorate(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/text/Text;)Lnet/minecraft/text/Text;"))
     private Text styledChat_replaceDecorator2(MessageDecorator instance, ServerPlayerEntity player, Text text) {
+
+        //Call original function for Kilt's hooks
+        var original = instance.decorate(player, text);
+
         if (player != null) {
-            return StyledChatUtils.formatFor(PlaceholderContext.of(player), text.getString());
+            return StyledChatUtils.formatFor(PlaceholderContext.of(player), original.getString());
         } else {
-            return StyledChatUtils.formatFor(PlaceholderContext.of(StyledChatMod.server), text.getString());
+            return StyledChatUtils.formatFor(PlaceholderContext.of(StyledChatMod.server), original.getString());
         }
     }
 
