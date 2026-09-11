@@ -215,7 +215,7 @@ public class ChatStyle {
                     }
 
                     var output =
-                            NodeParser.builder().quickText().serverPlaceholders()
+                            NodeParser.builder().simplifiedTextFormat().quickText().serverPlaceholders()
                                     .placeholders(TagLikeParser.PLACEHOLDER_USER, (x) -> parseText(b.toString()))
                                     .staticPreParsing().build().parseNode(baseValue);
 
